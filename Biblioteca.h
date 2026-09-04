@@ -1,6 +1,8 @@
 #ifndef BIBLIOTECA_H
 #define BIBLIOTECA_H // ya existe una vez no copiar varias.
 
+#include <stdio.h>
+
 #define MAXIMOPRODUCCION 300 //maximo de producciones que tendra nuestra biblioteca.
 #define MAXIMOEJEMPLARES 140 //maximo de ejemplares.
 
@@ -20,4 +22,6 @@ typedef struct {
 //Metodos
 void menuCatalogo(void);
 void rutaarchivo(void);
+void leerArchivo(FILE *archivo);
+void separarProduccion(char *linea);
 #endif
