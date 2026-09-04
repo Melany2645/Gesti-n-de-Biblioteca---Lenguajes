@@ -19,4 +19,5 @@ typedef struct {
 
 //Metodos
 void menuCatalogo(void);
+void rutaarchivo(void);
 #endif
