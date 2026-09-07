@@ -141,35 +141,104 @@ char *copiarTexto(char *texto)
     return copia;
 }
 
-
 //E: Linea de texto con los datos de una produccion.
 //S: Retorna 1 si la produccion es valida o 0 si no es valida.
-//R: La linea debe contener los datos separados por #.
-//F: Validar que la produccion tenga la cantidad correcta de campos.
+//R: La linea debe contener 6 campos separados por #.
+//F: Revisar que la informacion de la produccion tenga el formato correcto.
 int validarProduccion(char *linea)
 {
     int cantidadSeparadores = 0;
     int i = 0;
 
-    // Recorrer toda la linea
+    char *copia;
+    char *parte;
+
+    int campo = 1;
+
+    // Revisar que la linea tenga contenido
+    if (linea == NULL || linea[0] == '\0')
+    {
+        return 0;
+    }
+
+    // No permitir un campo vacio al inicio
+    if (linea[0] == '#')
+    {
+        return 0;
+    }
+
+    // Recorrer la linea
     while (linea[i] != '\0')
     {
         // Contar los #
         if (linea[i] == '#')
         {
             cantidadSeparadores++;
+
+            // No permitir campos vacios
+            if (linea[i + 1] == '#')
+            {
+                return 0;
+            }
         }
 
         i++;
     }
 
-    // Se necesitan 5 # para formar 6 campos
-    if (cantidadSeparadores == 5)
+    // Debe tener exactamente 5 #
+    if (cantidadSeparadores != 5)
     {
-        return 1;
+        return 0;
     }
 
-    return 0;
+    // Crear una copia para no modificar la linea original
+    copia = copiarTexto(linea);
+
+    if (copia == NULL)
+    {
+        return 0;
+    }
+
+    // Separar los campos
+    parte = strtok(copia, "#");
+
+    while (parte != NULL)
+    {
+        // Campo 3 = año
+        if (campo == 3)
+        {
+            if (esNumero(parte) == 0)
+            {
+                free(copia);
+                return 0;
+            }
+        }
+
+        // Campo 6 = cantidad
+        if (campo == 6)
+        {
+            if (esNumero(parte) == 0)
+            {
+                free(copia);
+                return 0;
+            }
+        }
+
+        campo++;
+
+        parte = strtok(NULL, "#");
+    }
+
+    // Liberar la copia
+    free(copia);
+
+    // Revisar que realmente encontro 6 campos
+    if (campo != 7)
+    {
+        return 0;
+    }
+
+    return 1;
 }
 
 
@@ -370,23 +439,189 @@ int guardarCatalogoJSON(
     return 1;
 }
 
+//E: Catalogo y cantidad de producciones.
+//S: Carga las producciones guardadas anteriormente.
+//R: El archivo JSON debe tener el formato del catalogo.
+//F: Leer el catalogo guardado en JSON.
+int cargarCatalogoJSON(
+    Produccion **catalogo,
+    int *cantidad
+)
+{
+    FILE *archivo;
+    char *texto;
+    long tamano;
+
+    cJSON *arreglo;
+    cJSON *objeto;
+
+    int i;
+    int total;
+
+    // Intentar abrir el catalogo
+    archivo = fopen(ARCHIVO_CATALOGO, "r");
+
+    // Si no existe, se empieza con catalogo vacio
+    if (archivo == NULL)
+    {
+        return 1;
+    }
+
+    // Buscar el tamaño del archivo
+    fseek(archivo, 0, SEEK_END);
+    tamano = ftell(archivo);
+    rewind(archivo);
+
+    // Reservar espacio para leer el JSON
+    texto = malloc((tamano + 1) * sizeof(char));
+
+    if (texto == NULL)
+    {
+        fclose(archivo);
+        return 0;
+    }
+
+    // Leer todo el archivo
+    fread(texto, sizeof(char), tamano, archivo);
+
+    // Marcar el final del texto
+    texto[tamano] = '\0';
+
+    fclose(archivo);
+
+    // Convertir el texto a JSON
+    arreglo = cJSON_Parse(texto);
+
+    free(texto);
+
+    if (arreglo == NULL)
+    {
+        return 0;
+    }
+
+    // Cantidad de producciones guardadas
+    total = cJSON_GetArraySize(arreglo);
+
+    // Recorrer el JSON
+    for (i = 0; i < total; i++)
+    {
+        Produccion nueva;
+
+        cJSON *nombre;
+        cJSON *autor;
+        cJSON *anio;
+        cJSON *genero;
+        cJSON *resumen;
+        cJSON *cantidadEjemplares;
+
+        // Obtener una produccion
+        objeto = cJSON_GetArrayItem(arreglo, i);
+
+        // Buscar cada dato
+        nombre = cJSON_GetObjectItemCaseSensitive(
+            objeto,
+            "nombre"
+        );
+
+        autor = cJSON_GetObjectItemCaseSensitive(
+            objeto,
+            "autor"
+        );
+
+        anio = cJSON_GetObjectItemCaseSensitive(
+            objeto,
+            "anioPublicacion"
+        );
+
+        genero = cJSON_GetObjectItemCaseSensitive(
+            objeto,
+            "genero"
+        );
+
+        resumen = cJSON_GetObjectItemCaseSensitive(
+            objeto,
+            "resumen"
+        );
+
+        cantidadEjemplares =
+            cJSON_GetObjectItemCaseSensitive(
+                objeto,
+                "cantidad"
+            );
+
+        // Revisar que los datos existan
+        if (
+            !cJSON_IsString(nombre) ||
+            !cJSON_IsString(autor) ||
+            !cJSON_IsNumber(anio) ||
+            !cJSON_IsString(genero) ||
+            !cJSON_IsString(resumen) ||
+            !cJSON_IsNumber(cantidadEjemplares)
+        )
+        {
+            continue;
+        }
+
+        // Guardar los datos
+        nueva.nombre = copiarTexto(nombre->valuestring);
+        nueva.autor = copiarTexto(autor->valuestring);
+        nueva.anPubli = anio->valueint;
+        nueva.genero = copiarTexto(genero->valuestring);
+        nueva.resumen = copiarTexto(resumen->valuestring);
+        nueva.cantidadEjemplares =
+            cantidadEjemplares->valueint;
+
+        // Agregar al catalogo en memoria
+        if (agregarProduccion(
+            catalogo,
+            cantidad,
+            &nueva
+        ) == 0)
+        {
+            liberarProduccion(&nueva);
+            cJSON_Delete(arreglo);
+
+            return 0;
+        }
+    }
+
+    // Liberar el JSON
+    cJSON_Delete(arreglo);
+
+    return 1;
+}
 
 //E: Archivo con el lote de producciones.
 //S: Producciones validas almacenadas y guardadas en JSON.
 //R: El archivo debe estar abierto correctamente.
 //F: Leer, validar y guardar las producciones.
-void leerArchivo(FILE *archivo)
-{
+
+void leerArchivo(FILE *archivo){
     char *linea;
 
-    // Catalogo dinamico
     Produccion *catalogo = NULL;
-
-    // Produccion que se esta leyendo
     Produccion nueva;
 
     int cantidad = 0;
     int i;
+
+    // Cargar lo que ya estaba guardado
+    if (cargarCatalogoJSON(
+        &catalogo,
+        &cantidad
+    ) == 0)
+    {
+        printf(
+            "No se pudo cargar el catalogo anterior\n"
+        );
+
+        return;
+    }
+
+    printf(
+        "Producciones existentes: %d\n",
+        cantidad
+    );
 
     // Reservar espacio para leer una linea
     linea = malloc(500 * sizeof(char));
@@ -394,35 +629,65 @@ void leerArchivo(FILE *archivo)
     if (linea == NULL)
     {
         printf("No se pudo reservar memoria\n");
+
+        // Liberar catalogo cargado
+        for (i = 0; i < cantidad; i++)
+        {
+            liberarProduccion(&catalogo[i]);
+        }
+
+        free(catalogo);
+
         return;
     }
 
-    // Leer linea por linea
+    // Leer el nuevo lote
     while (fgets(linea, 500, archivo) != NULL)
     {
-        // Revisar si tiene el formato correcto
+        // Revisar formato
         if (validarProduccion(linea) == 1)
         {
-            // Guardar los datos en la estructura
-            guardarProduccion(linea, &nueva);
+            // Guardar los datos
+            guardarProduccion(
+                linea,
+                &nueva
+            );
 
-            // Agregar al catalogo usando realloc
-            if (
-                agregarProduccion(
-                    &catalogo,
-                    &cantidad,
-                    &nueva
-                ) == 1
-            )
+            // Revisar si ya existe
+            if (existeProduccion(
+                catalogo,
+                cantidad,
+                nueva.nombre
+            ) == 1)
             {
-                printf("Produccion agregada correctamente\n");
+                printf(
+                    "No agregada: %s ya existe\n",
+                    nueva.nombre
+                );
+
+                liberarProduccion(&nueva);
             }
             else
             {
-                printf("No se pudo agregar la produccion\n");
+                // Agregar nueva produccion
+                if (agregarProduccion(
+                    &catalogo,
+                    &cantidad,
+                    &nueva
+                ) == 1)
+                {
+                    printf(
+                        "Produccion agregada correctamente\n"
+                    );
+                }
+                else
+                {
+                    printf(
+                        "No se pudo agregar la produccion\n"
+                    );
 
-                // Liberar si no se pudo agregar
-                liberarProduccion(&nueva);
+                    liberarProduccion(&nueva);
+                }
             }
         }
         else
@@ -431,20 +696,26 @@ void leerArchivo(FILE *archivo)
         }
     }
 
-    // Mostrar total agregado
     printf(
-        "\nCantidad de producciones agregadas: %d\n",
+        "\nTotal de producciones: %d\n",
         cantidad
     );
 
-    // Guardar todo en JSON
-    if (guardarCatalogoJSON(catalogo, cantidad) == 1)
+    // Guardar catalogo actualizado
+    if (guardarCatalogoJSON(
+        catalogo,
+        cantidad
+    ) == 1)
     {
-        printf("Catalogo guardado correctamente en JSON\n");
+        printf(
+            "Catalogo actualizado correctamente\n"
+        );
     }
     else
     {
-        printf("No se pudo guardar el catalogo en JSON\n");
+        printf(
+            "No se pudo guardar el catalogo\n"
+        );
     }
 
     // Liberar cada produccion
@@ -453,9 +724,328 @@ void leerArchivo(FILE *archivo)
         liberarProduccion(&catalogo[i]);
     }
 
-    // Liberar el catalogo
+    // Liberar catalogo
     free(catalogo);
 
-    // Liberar la linea
+    // Liberar linea
     free(linea);
+}
+
+//E: Catalogo, cantidad de producciones y nombre a buscar.
+//S: Retorna 1 si existe o 0 si no existe.
+//R: El catalogo debe contener producciones validas.
+//F: Revisar si una produccion ya existe por su nombre.
+int existeProduccion(
+    Produccion *catalogo,
+    int cantidad,
+    char *nombre
+)
+{
+    int i;
+
+    // Recorrer el catalogo
+    for (i = 0; i < cantidad; i++)
+    {
+        // Comparar los nombres
+        if (strcmp(catalogo[i].nombre, nombre) == 0)
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+//E: Texto que se desea revisar.
+//S: Retorna 1 si contiene solo numeros o 0 si no.
+//R: El texto no debe estar vacio.
+//F: Revisar si un texto representa un numero entero.
+int esNumero(char *texto)
+{
+    int i = 0;
+
+    // Revisar que tenga contenido
+    if (texto == NULL || texto[0] == '\0')
+    {
+        return 0;
+    }
+
+    // Revisar cada caracter
+    while (texto[i] != '\0')
+    {
+        // Permitir el salto de linea al final
+        if (texto[i] == '\n' || texto[i] == '\r')
+        {
+            i++;
+            continue;
+        }
+
+        // Revisar que sea un numero
+        if (texto[i] < '0' || texto[i] > '9')
+        {
+            return 0;
+        }
+
+        i++;
+    }
+
+    return 1;
+}
+//E: Lista de ejemplares, cantidad y nuevo ejemplar.
+//S: Retorna 1 si se agrega o 0 si ocurre un error.
+//R: El ejemplar debe tener sus datos.
+//F: Agregar un ejemplar a la lista.
+int agregarEjemplar(
+    Ejemplar **ejemplares,
+    int *cantidad,
+    Ejemplar *nuevo
+)
+{
+    Ejemplar *temporal;
+
+    // Aumentar espacio para otro ejemplar
+    temporal = realloc(
+        *ejemplares,
+        ((*cantidad) + 1) * sizeof(Ejemplar)
+    );
+
+    if (temporal == NULL)
+    {
+        return 0;
+    }
+
+    // Actualizar la lista
+    *ejemplares = temporal;
+
+    // Guardar el ejemplar
+    (*ejemplares)[*cantidad] = *nuevo;
+
+    // Aumentar cantidad
+    (*cantidad)++;
+
+    return 1;
+}
+//E: Un Ejemplar.
+//S: Libera la memoria utilizada.
+//R: El ejemplar debe estar creado.
+//F: Liberar la memoria de un ejemplar.
+void liberarEjemplar(Ejemplar *ejemplar)
+{
+    // Liberar el nombre
+    free((*ejemplar).nombreProduccion);
+}
+
+//E: Un Ejemplar.
+//S: Libera la memoria utilizada.
+//R: El ejemplar debe estar creado.
+//F: Liberar la memoria de un ejemplar.
+void liberarEjemplar(Ejemplar *ejemplar)
+{
+    // Liberar el nombre
+    free((*ejemplar).nombreProduccion);
+}
+
+//E: Lista de ejemplares y cantidad.
+//S: Retorna 1 si se guarda correctamente o 0 si ocurre un error.
+//R: Los ejemplares deben estar creados correctamente.
+//F: Guardar los ejemplares en un archivo JSON.
+int guardarEjemplaresJSON(
+    Ejemplar *ejemplares,
+    int cantidad
+)
+{
+    FILE *archivo;
+    cJSON *arreglo;
+    cJSON *objeto;
+    char *textoJSON;
+    int i;
+
+    // Crear arreglo JSON
+    arreglo = cJSON_CreateArray();
+
+    if (arreglo == NULL)
+    {
+        return 0;
+    }
+
+    // Recorrer ejemplares
+    for (i = 0; i < cantidad; i++)
+    {
+        objeto = cJSON_CreateObject();
+
+        if (objeto == NULL)
+        {
+            cJSON_Delete(arreglo);
+            return 0;
+        }
+
+        // Guardar identificador
+        cJSON_AddNumberToObject(
+            objeto,
+            "id",
+            ejemplares[i].id
+        );
+
+        // Guardar nombre de la produccion
+        cJSON_AddStringToObject(
+            objeto,
+            "produccion",
+            ejemplares[i].nombreProduccion
+        );
+
+        // Agregar al arreglo
+        cJSON_AddItemToArray(arreglo, objeto);
+    }
+
+    // Convertir JSON a texto
+    textoJSON = cJSON_Print(arreglo);
+
+    if (textoJSON == NULL)
+    {
+        cJSON_Delete(arreglo);
+        return 0;
+    }
+
+    // Abrir archivo
+    archivo = fopen(ARCHIVO_EJEMPLARES, "w");
+
+    if (archivo == NULL)
+    {
+        cJSON_free(textoJSON);
+        cJSON_Delete(arreglo);
+        return 0;
+    }
+
+    // Guardar JSON
+    fprintf(archivo, "%s", textoJSON);
+
+    fclose(archivo);
+
+    // Liberar memoria
+    cJSON_free(textoJSON);
+    cJSON_Delete(arreglo);
+
+    return 1;
+}
+//E: Lista de ejemplares y cantidad.
+//S: Carga los ejemplares guardados anteriormente.
+//R: El archivo debe tener el formato correcto.
+//F: Leer los ejemplares guardados en JSON.
+int cargarEjemplaresJSON(
+    Ejemplar **ejemplares,
+    int *cantidad
+)
+{
+    FILE *archivo;
+    char *texto;
+    long tamano;
+
+    cJSON *arreglo;
+    cJSON *objeto;
+
+    int i;
+    int total;
+
+    // Abrir archivo
+    archivo = fopen(ARCHIVO_EJEMPLARES, "r");
+
+    // Si no existe, empezar vacio
+    if (archivo == NULL)
+    {
+        return 1;
+    }
+
+    // Obtener tamaño
+    fseek(archivo, 0, SEEK_END);
+    tamano = ftell(archivo);
+    rewind(archivo);
+
+    // Reservar memoria
+    texto = malloc((tamano + 1) * sizeof(char));
+
+    if (texto == NULL)
+    {
+        fclose(archivo);
+        return 0;
+    }
+
+    // Leer archivo
+    fread(texto, sizeof(char), tamano, archivo);
+
+    texto[tamano] = '\0';
+
+    fclose(archivo);
+
+    // Convertir texto a JSON
+    arreglo = cJSON_Parse(texto);
+
+    free(texto);
+
+    if (arreglo == NULL)
+    {
+        return 0;
+    }
+
+    total = cJSON_GetArraySize(arreglo);
+
+    // Recorrer ejemplares guardados
+    for (i = 0; i < total; i++)
+    {
+        Ejemplar nuevo;
+
+        cJSON *id;
+        cJSON *produccion;
+
+        objeto = cJSON_GetArrayItem(arreglo, i);
+
+        // Buscar datos
+        id = cJSON_GetObjectItemCaseSensitive(
+            objeto,
+            "id"
+        );
+
+        produccion = cJSON_GetObjectItemCaseSensitive(
+            objeto,
+            "produccion"
+        );
+
+        // Revisar datos
+        if (
+            !cJSON_IsNumber(id) ||
+            !cJSON_IsString(produccion)
+        )
+        {
+            continue;
+        }
+
+        // Guardar datos
+        nuevo.id = id->valueint;
+
+        nuevo.nombreProduccion =
+            copiarTexto(produccion->valuestring);
+
+        if (nuevo.nombreProduccion == NULL)
+        {
+            cJSON_Delete(arreglo);
+            return 0;
+        }
+
+        // Agregar a memoria
+        if (agregarEjemplar(
+            ejemplares,
+            cantidad,
+            &nuevo
+        ) == 0)
+        {
+            liberarEjemplar(&nuevo);
+            cJSON_Delete(arreglo);
+
+            return 0;
+        }
+    }
+
+    // Liberar JSON
+    cJSON_Delete(arreglo);
+
+    return 1;
 }
