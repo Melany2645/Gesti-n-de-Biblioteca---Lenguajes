@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "Biblioteca.c"
-#include "Usuario.c"
+#include "Biblioteca.h"
+#include "Usuario.h"
 
 #include "menu.h"
 
-char operativas(int opcion) {
+void operativas(int opcion) {
 
     printf("-----Opciones Operativas-----\n");
     printf("1. Gestión del catálogo.\n");
@@ -44,7 +44,7 @@ char operativas(int opcion) {
     }
 }
 
-char generales(int opcion) {
+void generales(int opcion) {
 
     printf("-----Opciones Generales-----\n");
     printf("1. Búsqueda simple\n");

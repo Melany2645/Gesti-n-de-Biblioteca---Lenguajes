@@ -6,8 +6,8 @@ typedef struct menu{
 } Menu;
 
 // métodos
-char operativas();
-char generales();
+void operativas(int opcion);
+void generales(int opcion);
 
 
 
