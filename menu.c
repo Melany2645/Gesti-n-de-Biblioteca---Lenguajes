@@ -4,9 +4,7 @@
 
 #include "menu.h"
 
-char operativas() {
-
-    int opcion;
+char operativas(int opcion) {
 
     printf("-----Opciones Operativas-----\n");
     printf("1. Gestión del catálogo.\n");
@@ -43,7 +41,8 @@ char operativas() {
     }
 }
 
-char generales() {
+char generales(int opcion) {
+
     printf("-----Opciones Generales-----\n");
     printf("1. Búsqueda simple\n");
     printf("2. Búsqueda avanzada\n");
@@ -80,6 +79,8 @@ char generales() {
 }
 
 int main() {
+    int opcion;
+
     printf("Bienvenido al sistema de gestión de biblioteca\n");
     printf("1. Opciones Operativas.\n");
     printf("2. Opciones Generales.\n");
@@ -89,11 +90,11 @@ int main() {
 
     switch (opcion) {
         case 1:
-            operativas();
+            operativas(opcion);
             // Llamar a la función correspondiente para las opciones operativas
             break;
         case 2:
-            generales();
+            generales(opcion);
             // Llamar a la función correspondiente para las opciones generales
             break;
         case 3:
