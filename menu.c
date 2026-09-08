@@ -81,7 +81,7 @@ void generales(int opcion) {
     }
 }
 
-int main() {
+int main(void) {
     int opcion;
 
     printf("Bienvenido al sistema de gestión de biblioteca\n");

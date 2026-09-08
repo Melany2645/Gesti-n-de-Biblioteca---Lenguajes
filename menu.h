@@ -9,6 +9,6 @@ typedef struct menu{
 void operativas(int opcion);
 void generales(int opcion);
 
-
+int main(void);
 
 #endif // MENU_H

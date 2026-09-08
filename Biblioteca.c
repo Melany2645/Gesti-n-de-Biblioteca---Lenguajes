@@ -6,6 +6,7 @@
 #include "Biblioteca.h"
 
 #define ARCHIVO_CATALOGO "catalogo.json"
+#define ARCHIVO_EJEMPLARES "ejemplares.json"
 
 
 //E: Numero ingresado por el usuario.
@@ -36,6 +37,7 @@ void menuCatalogo(void)
 
                 case 2:
                     printf("Ver el catalogo completo\n");
+                    mostrarCatalogo();
                     break;
 
                 case 3:
@@ -61,6 +63,8 @@ void menuCatalogo(void)
 
     } while (numero != 3);
 }
+
+//OPCION 1
 
 
 //E: Ruta del archivo que ingresa el usuario.
@@ -602,22 +606,30 @@ void leerArchivo(FILE *archivo){
     Produccion *catalogo = NULL;
     Produccion nueva;
 
+    Ejemplar *ejemplares = NULL;
+
     int cantidad = 0;
+    int cantidadEjemplares = 0;
+
+    int invalidas = 0;
+    int repetidas = 0;
+
     int i;
 
     // Cargar lo que ya estaba guardado
-    if (cargarCatalogoJSON(
-        &catalogo,
-        &cantidad
-    ) == 0)
+    if (cargarCatalogoJSON(&catalogo,&cantidad) == 0)
     {
-        printf(
-            "No se pudo cargar el catalogo anterior\n"
-        );
+        printf("No se pudo cargar el catalogo anterior\n");
 
         return;
     }
+    // Cargar ejemplares anteriores
+    if (cargarEjemplaresJSON( &ejemplares,&cantidadEjemplares) == 0)
+    {
+        printf("No se pudieron cargar los ejemplares\n");
 
+        return;
+    }
     printf(
         "Producciones existentes: %d\n",
         cantidad
@@ -648,77 +660,75 @@ void leerArchivo(FILE *archivo){
         if (validarProduccion(linea) == 1)
         {
             // Guardar los datos
-            guardarProduccion(
-                linea,
-                &nueva
-            );
+            guardarProduccion(linea,&nueva);
 
             // Revisar si ya existe
-            if (existeProduccion(
-                catalogo,
-                cantidad,
-                nueva.nombre
+            if (existeProduccion(catalogo,cantidad,nueva.nombre
             ) == 1)
             {
-                printf(
-                    "No agregada: %s ya existe\n",
-                    nueva.nombre
-                );
+                printf("No agregada: %s ya existe\n",nueva.nombre);
 
-                liberarProduccion(&nueva);
-            }
-            else
-            {
-                // Agregar nueva produccion
-                if (agregarProduccion(
-                    &catalogo,
-                    &cantidad,
-                    &nueva
-                ) == 1)
-                {
-                    printf(
-                        "Produccion agregada correctamente\n"
-                    );
-                }
-                else
-                {
-                    printf(
-                        "No se pudo agregar la produccion\n"
-                    );
+                    repetidas++;
 
                     liberarProduccion(&nueva);
+                    }
+            else
+            {
+                if (agregarProduccion(&catalogo,&cantidad,&nueva) == 1)
+                {
+                    printf("Produccion agregada correctamente\n");
+
+                    // Crear ejemplares
+                    generarEjemplares(&nueva,&ejemplares,&cantidadEjemplares
+                    );
                 }
             }
         }
         else
         {
-            printf("Produccion no valida\n");
+            printf("Produccion no valida: %s", linea);
+
+            invalidas++;
         }
     }
 
+     //reporte
+    printf("\n--- /Reporte del lote/ ---\n");
     printf(
-        "\nTotal de producciones: %d\n",
-        cantidad
+        "Registros repetidos: %d\n",
+        repetidas
+    );
+    printf(
+        "Registros invalidos: %d\n",
+        invalidas
     );
 
-    // Guardar catalogo actualizado
-    if (guardarCatalogoJSON(
-        catalogo,
+    printf(
+        "Total de producciones: %d\n",
         cantidad
-    ) == 1)
+    );
+    // Guardar catalogo actualizado
+    if (guardarCatalogoJSON(catalogo,cantidad) == 1)
     {
-        printf(
-            "Catalogo actualizado correctamente\n"
-        );
+        printf("Catalogo actualizado correctamente\n");
     }
     else
     {
-        printf(
-            "No se pudo guardar el catalogo\n"
-        );
+        printf("No se pudo guardar el catalogo\n");
     }
-
-    // Liberar cada produccion
+        // Guardar ejemplares
+    if (guardarEjemplaresJSON(
+        ejemplares,
+        cantidadEjemplares
+    ) == 1)
+    {
+        printf("Ejemplares guardados correctamente\n");
+    }
+    else
+    {
+        printf("No se pudieron guardar los ejemplares\n");
+    }
+     // Liberar cada produccion
     for (i = 0; i < cantidad; i++)
     {
         liberarProduccion(&catalogo[i]);
@@ -726,6 +736,14 @@ void leerArchivo(FILE *archivo){
 
     // Liberar catalogo
     free(catalogo);
+
+    // Liberar ejemplares
+    for (i = 0; i < cantidadEjemplares; i++)
+    {
+        liberarEjemplar(&ejemplares[i]);
+    }
+
+    free(ejemplares);
 
     // Liberar linea
     free(linea);
@@ -825,16 +843,6 @@ int agregarEjemplar(
 
     return 1;
 }
-//E: Un Ejemplar.
-//S: Libera la memoria utilizada.
-//R: El ejemplar debe estar creado.
-//F: Liberar la memoria de un ejemplar.
-void liberarEjemplar(Ejemplar *ejemplar)
-{
-    // Liberar el nombre
-    free((*ejemplar).nombreProduccion);
-}
-
 //E: Un Ejemplar.
 //S: Libera la memoria utilizada.
 //R: El ejemplar debe estar creado.
@@ -1031,10 +1039,7 @@ int cargarEjemplaresJSON(
         }
 
         // Agregar a memoria
-        if (agregarEjemplar(
-            ejemplares,
-            cantidad,
-            &nuevo
+        if (agregarEjemplar(ejemplares,cantidad,&nuevo
         ) == 0)
         {
             liberarEjemplar(&nuevo);
@@ -1048,4 +1053,150 @@ int cargarEjemplaresJSON(
     cJSON_Delete(arreglo);
 
     return 1;
+}
+//E: Produccion y lista de ejemplares.
+//S: Crea los ejemplares segun la cantidad.
+//R: La produccion debe ser valida.
+//F: Generar los ejemplares de una produccion.
+void generarEjemplares(
+    Produccion *produccion,
+    Ejemplar **ejemplares,
+    int *cantidadEjemplares
+)
+{
+    int i;
+    Ejemplar nuevo;
+
+    // Crear la cantidad indicada
+    for (i = 0; i < (*produccion).cantidadEjemplares; i++)
+    {
+        // Generar ID
+        nuevo.id = siguienteId(
+            *ejemplares,
+            *cantidadEjemplares
+        );
+
+        // Guardar nombre de la produccion
+        nuevo.nombreProduccion =
+            copiarTexto((*produccion).nombre);
+
+        if (nuevo.nombreProduccion == NULL)
+        {
+            printf("No se pudo crear el ejemplar\n");
+            return;
+        }
+
+        // Agregar ejemplar
+        if (agregarEjemplar(
+            ejemplares,
+            cantidadEjemplares,
+            &nuevo
+        ) == 0)
+        {
+            printf("No se pudo agregar el ejemplar\n");
+
+            liberarEjemplar(&nuevo);
+
+            return;
+        }
+    }
+}
+//E: Lista de ejemplares y cantidad.
+//S: Retorna el siguiente identificador.
+//R: Los ejemplares deben estar cargados.
+//F: Buscar el ID mayor y generar el siguiente.
+int siguienteId(
+    Ejemplar *ejemplares,
+    int cantidad
+)
+{
+    int mayor = 0;
+    int i;
+
+    // Buscar ID mayor
+    for (i = 0; i < cantidad; i++)
+    {
+        if (ejemplares[i].id > mayor)
+        {
+            mayor = ejemplares[i].id;
+        }
+    }
+
+    return mayor + 1;
+}
+
+//OPCION 2
+
+//E: No recibe datos.
+//S: Muestra todas las producciones del catalogo.
+//R: El archivo catalogo.json debe existir o estar vacio.
+//F: Mostrar el catalogo completo.
+void mostrarCatalogo(void)
+{
+    Produccion *catalogo = NULL;
+    int cantidad = 0;
+    int i;
+
+    // Cargar catalogo
+    if (cargarCatalogoJSON(
+        &catalogo,
+        &cantidad
+    ) == 0)
+    {
+        printf("No se pudo cargar el catalogo\n");
+        return;
+    }
+
+    // Revisar si esta vacio
+    if (cantidad == 0)
+    {
+        printf("El catalogo esta vacio\n");
+        return;
+    }
+
+    printf("\n----- CATALOGO COMPLETO -----\n");
+
+    // Mostrar cada produccion
+    for (i = 0; i < cantidad; i++)
+    {
+        printf("\nProduccion %d\n", i + 1);
+
+        printf(
+            "Nombre: %s\n",
+            catalogo[i].nombre
+        );
+
+        printf(
+            "Autor: %s\n",
+            catalogo[i].autor
+        );
+
+        printf(
+            "Anio: %d\n",
+            catalogo[i].anPubli
+        );
+
+        printf(
+            "Genero: %s\n",
+            catalogo[i].genero
+        );
+
+        printf(
+            "Resumen: %s\n",
+            catalogo[i].resumen
+        );
+
+        printf(
+            "Cantidad: %d\n",
+            catalogo[i].cantidadEjemplares
+        );
+    }
+
+    // Liberar memoria
+    for (i = 0; i < cantidad; i++)
+    {
+        liberarProduccion(&catalogo[i]);
+    }
+
+    free(catalogo);
 }

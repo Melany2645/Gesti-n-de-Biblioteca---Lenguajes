@@ -1,0 +1,22 @@
+[{
+		"nombre":	"Cien años de soledad",
+		"autor":	"Gabriel Garcia Marquez",
+		"anioPublicacion":	1967,
+		"genero":	"Realismo magico",
+		"resumen":	"Historia de la familia Buendia",
+		"cantidad":	4
+	}, {
+		"nombre":	"Don Quijote",
+		"autor":	"Miguel de Cervantes",
+		"anioPublicacion":	1605,
+		"genero":	"Novela",
+		"resumen":	"Aventuras de Don Quijote",
+		"cantidad":	3
+	}, {
+		"nombre":	"El principito",
+		"autor":	"Antoine de Saint-Exupery",
+		"anioPublicacion":	1943,
+		"genero":	"Fabula",
+		"resumen":	"Historia de un pequeno principe",
+		"cantidad":	5
+	}]
