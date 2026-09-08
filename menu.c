@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "Biblioteca.c"
+#include "Usuario.c"
+
 #include "menu.h"
 
 char operativas(int opcion) {
@@ -17,23 +20,23 @@ char operativas(int opcion) {
     switch (opcion) {
         case 1:
             printf("Gestión del catálogo seleccionada.\n");
-            // Llamar a la función correspondiente para la gestión del catálogo
+            menuCatalogo(); // Llamar a la función correspondiente para la gestión del catálogo
             break;
         case 2:
             printf("Gestión de usuario seleccionada.\n");
-            // Llamar a la función correspondiente para la gestión de usuario
+            menuUsuario(); // Llamar a la función correspondiente para la gestión de usuario
             break;
         case 3:
             printf("Historial de préstamos seleccionado.\n");
-            // Llamar a la función correspondiente para el historial de préstamos
+            //menuHistorial(); // Llamar a la función correspondiente para el historial de préstamos
             break;
         case 4:
             printf("Estadísticas seleccionadas.\n");
-            // Llamar a la función correspondiente para las estadísticas
+            //menuEstadisticas(); // Llamar a la función correspondiente para las estadísticas
             break;
         case 5:
             printf("Volviendo al menú principal.\n");
-            // Volver al menú principal
+            main(); // Llamar a la función main para volver al menú principal
             break;
         default:
             printf("Opción no válida. Intente nuevamente.\n");
@@ -54,23 +57,23 @@ char generales(int opcion) {
     switch (opcion) {
         case 1:
             printf("Búsqueda simple seleccionada.\n");
-            // Llamar a la función correspondiente para la búsqueda simple
+            //menuBusquedaSimple(); // Llamar a la función correspondiente para la búsqueda simple
             break;
         case 2:
             printf("Búsqueda avanzada seleccionada.\n");
-            // Llamar a la función correspondiente para la búsqueda avanzada
+            //menuBusquedaAvanzada(); // Llamar a la función correspondiente para la búsqueda avanzada
             break;
         case 3:
             printf("Préstamo de ejemplares seleccionado.\n");
-            // Llamar a la función correspondiente para el préstamo de ejemplares
+            //menuPrestamo(); // Llamar a la función correspondiente para el préstamo de ejemplares
             break;
         case 4:
             printf("Devolución de ejemplares seleccionada.\n");
-            // Llamar a la función correspondiente para la devolución de ejemplares
+            //menuDevolucion(); // Llamar a la función correspondiente para la devolución de ejemplares
             break;
         case 5:
             printf("Volviendo al menú principal.\n");
-            // Volver al menú principal
+            main(); // Llamar a la función main para volver al menú principal
             break;
         default:
             printf("Opción no válida. Intente nuevamente.\n");
