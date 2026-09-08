@@ -11,9 +11,9 @@ char operativas() {
     printf("3. Historial de préstamos\n");
     printf("4. Estadísticas\n");
     printf("5. Volver\n");
-    scanf("%d", &opcion);
+    scanf("%d", Menu.opcion);
 
-    switch (opcion) {
+    switch (Menu.opcion) {
         case 1:
             printf("Gestión del catálogo seleccionada.\n");
             // Llamar a la función correspondiente para la gestión del catálogo
@@ -47,9 +47,9 @@ char generales() {
     printf("3. Préstamo de ejemplares\n");
     printf("4. Devolución de ejemplares\n");
     printf("5. Volver\n");
-    scanf("%d", &opcion);
+    scanf("%d", Menu.opcion);
 
-    switch (opcion) {
+    switch (Menu.opcion) {
         case 1:
             printf("Búsqueda simple seleccionada.\n");
             // Llamar a la función correspondiente para la búsqueda simple
@@ -82,9 +82,9 @@ int main() {
     printf("2. Opciones Generales.\n");
     printf("3. Salir\n");
     printf("Seleccione una opción:\n");
-    scanf("%d", &opcion);
+    scanf("%d", Menu.opcion);
 
-    switch (opcion) {
+    switch (Menu.opcion) {
         case 1:
             operativas();
             // Llamar a la función correspondiente para las opciones operativas
