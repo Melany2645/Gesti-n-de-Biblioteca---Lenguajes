@@ -4,6 +4,7 @@
 #include <cjson/cJSON.h>
 
 #include "prestamosDevoluciones.h"
+#include "menu.h"
 
 #define ARCHIVO_PRESTAMOS "prestamos.json"
 
@@ -152,6 +153,28 @@ Usuario *buscarUsuarioPorID(ListaUsuarios *lista, int id)
     for (int i = 0; i < lista->cantidad; i++)
     {
         if (lista->usuarios[i].id == id)
+        {
+            return &lista->usuarios[i];
+        }
+    }
+
+    return NULL;
+}
+
+// E: Lista de los usuarios, nombre del usuario a buscar
+// S: Nos retorna la dirección de memoria del usuario si se encuentra, NULL si no se encuentra
+// R: Valores válidos en la lista de usuarios
+// F: Buscar un usuario por su nombre en la lista de usuarios
+char buscarUsuarioPorNombre(ListaUsuarios *lista, char nombre)
+{
+    if (lista == NULL)
+    {
+        return NULL;
+    }
+
+    for (int i = 0; i < lista->cantidad; i++)
+    {
+        if (lista->usuarios[i].id == nombre)
         {
             return &lista->usuarios[i];
         }
@@ -433,4 +456,50 @@ void consultarHistorialPrestamos(SistemaPrestamos *sistema, Fecha desde, Fecha h
                    prestamo->idUsuario);
         }
     }
+}
+
+void datosPrestamo(void) 
+{
+    char nombreUsuario[50];
+
+    printf("Ingrese los siguientes datos: ")
+
+}
+
+void menuPrestamos(void) 
+{
+    printf("-----Menu de Prestamos------\n");
+    printf("1. Realizar prestamo\n");
+    printf("2. Consultar historial de prestamos\n");
+    printf("3. Consultar vencimientos\n");
+    printf("4. Consultar prestamos por usuario\n");
+    printf("5. volver\n");
+
+    int opcion;
+
+    printf("Ingrese una opción: ");
+    scanf("%d", &opcion);
+
+    switch (opcion)
+    {
+    case 1:
+        // Lógica para realizar préstamo
+        break;
+    case 2:
+        // Lógica para consultar historial de préstamos
+        break;
+    case 3:
+        // Lógica para consultar vencimientos
+        break;
+    case 4:
+        // Lógica para consultar préstamos por usuario
+        break;
+    case 5:
+        mainPrincipal(); // Llamar a la función main para volver al menú principal
+        break;
+    default:
+        printf("Opción no válida.\n");
+        break;
+    }
+
 }

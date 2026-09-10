@@ -65,6 +65,8 @@ void devolverPrestamo(SistemaPrestamos *sistema, int idPrestamo, Fecha fechaDevo
 void generarReporteEstadisticas(SistemaPrestamos *sistema, Fecha desde, Fecha hasta);
 int crearArchivoPrestamos(void);
 int guardarPrestamosJSON(SistemaPrestamos *sistema);
+void menuPrestamos(void);
+void menuDevoluciones(void);
 
 
 #endif // PRESTAMOS_DEVOLUCIONES_H
