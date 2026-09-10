@@ -36,7 +36,7 @@ void operativas(int opcion) {
             break;
         case 5:
             printf("Volviendo al menú principal.\n");
-            main(); // Llamar a la función main para volver al menú principal
+            mainPrincipal(); // Llamar a la función main para volver al menú principal
             break;
         default:
             printf("Opción no válida. Intente nuevamente.\n");
@@ -73,15 +73,14 @@ void generales(int opcion) {
             break;
         case 5:
             printf("Volviendo al menú principal.\n");
-            main(); // Llamar a la función main para volver al menú principal
+            mainPrincipal(); // Llamar a la función main para volver al menú principal
             break;
         default:
             printf("Opción no válida. Intente nuevamente.\n");
             break;
     }
 }
-
-int main(void) {
+void mainPrincipal(void) {
     int opcion;
 
     printf("Bienvenido al sistema de gestión de biblioteca\n");
