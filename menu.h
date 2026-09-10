@@ -1,7 +1,7 @@
 #ifndef MENU_H
 #define MENU_H
 
-typedef struct menu{
+typedef struct{
     int opcion;
 } Menu;
 

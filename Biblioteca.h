@@ -113,5 +113,8 @@ int cargarEjemplaresJSON(
     int *cantidad
 );
 
+void actualizarEstadoEjemplaresJSON(
+    int idEjemplar, int nuevoEstado
+);
 
 #endif
