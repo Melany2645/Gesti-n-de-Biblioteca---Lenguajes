@@ -32,5 +32,4 @@ void VisualizarUsuarioPorID(ListaUsuarios *lista, int id);
 void ModificarUsuario(ListaUsuarios *lista, const char *nombreArchivo, int id);
 void EliminarUsuario(ListaUsuarios *lista, const char *nombreArchivo, int id);
 void LiberarListaUsuarios(ListaUsuarios *lista);
-void main(void);
 #endif

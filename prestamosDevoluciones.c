@@ -5,6 +5,7 @@
 
 #include "prestamosDevoluciones.h"
 #include "menu.h"
+#include "menu.h"
 
 #define ARCHIVO_PRESTAMOS "prestamos.json"
 
@@ -462,7 +463,7 @@ void datosPrestamo(void)
 {
     char nombreUsuario[50];
 
-    printf("Ingrese los siguientes datos: ")
+    printf("Ingrese los siguientes datos: ");
 
 }
 

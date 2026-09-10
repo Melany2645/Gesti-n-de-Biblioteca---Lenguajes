@@ -4,6 +4,7 @@
 
 #include "Biblioteca.h"
 #include "Usuario.h"
+#include "prestamosDevoluciones.h"
 
 #include "menu.h"
 
@@ -28,7 +29,7 @@ void operativas(int opcion) {
             break;
         case 3:
             printf("Historial de préstamos seleccionado.\n");
-            //menuHistorial(); // Llamar a la función correspondiente para el historial de préstamos
+            menuPrestamos();
             break;
         case 4:
             printf("Estadísticas seleccionadas.\n");
@@ -65,7 +66,7 @@ void generales(int opcion) {
             break;
         case 3:
             printf("Préstamo de ejemplares seleccionado.\n");
-            //menuPrestamo(); // Llamar a la función correspondiente para el préstamo de ejemplares
+            menuPrestamos();
             break;
         case 4:
             printf("Devolución de ejemplares seleccionada.\n");
