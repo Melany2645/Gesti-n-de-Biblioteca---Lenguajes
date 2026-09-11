@@ -20,6 +20,7 @@ typedef struct
 {
     int id;
     char *nombreProduccion;
+    int disponible;
 } Ejemplar;
 
 
@@ -113,8 +114,9 @@ int cargarEjemplaresJSON(
     int *cantidad
 );
 
-void actualizarEstadoEjemplaresJSON(
-    int idEjemplar, int nuevoEstado
+int cantidadDisponibles(
+    Ejemplar *ejemplares,
+    int cantidadEjemplares,
+    char *nombre
 );
-
 #endif

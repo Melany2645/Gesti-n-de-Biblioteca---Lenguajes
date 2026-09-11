@@ -901,6 +901,13 @@ int guardarEjemplaresJSON(
             ejemplares[i].nombreProduccion
         );
 
+        // Guardar disponibilidad
+        cJSON_AddNumberToObject(
+            objeto,
+            "disponible",
+            ejemplares[i].disponible
+        );
+
         // Agregar al arreglo
         cJSON_AddItemToArray(arreglo, objeto);
     }
@@ -950,6 +957,7 @@ int cargarEjemplaresJSON(
 
     cJSON *arreglo;
     cJSON *objeto;
+    
 
     int i;
     int total;
@@ -1003,6 +1011,7 @@ int cargarEjemplaresJSON(
 
         cJSON *id;
         cJSON *produccion;
+        cJSON *disponible;
 
         objeto = cJSON_GetArrayItem(arreglo, i);
 
@@ -1011,7 +1020,10 @@ int cargarEjemplaresJSON(
             objeto,
             "id"
         );
-
+        disponible = cJSON_GetObjectItemCaseSensitive(
+            objeto,
+            "disponible"
+        );
         produccion = cJSON_GetObjectItemCaseSensitive(
             objeto,
             "produccion"
@@ -1021,6 +1033,7 @@ int cargarEjemplaresJSON(
         if (
             !cJSON_IsNumber(id) ||
             !cJSON_IsString(produccion)
+            
         )
         {
             continue;
@@ -1028,6 +1041,16 @@ int cargarEjemplaresJSON(
 
         // Guardar datos
         nuevo.id = id->valueint;
+        // Revisar disponibilidad
+        if (cJSON_IsNumber(disponible))
+        {
+            nuevo.disponible = disponible->valueint;
+        }
+        else
+        {
+            // Si es un ejemplar viejo, se toma como disponible
+            nuevo.disponible = 1;
+        }
 
         nuevo.nombreProduccion =
             copiarTexto(produccion->valuestring);
@@ -1075,6 +1098,7 @@ void generarEjemplares(
             *ejemplares,
             *cantidadEjemplares
         );
+        nuevo.disponible = 1;
 
         // Guardar nombre de la produccion
         nuevo.nombreProduccion =
@@ -1131,10 +1155,19 @@ int siguienteId(
 //S: Muestra todas las producciones del catalogo.
 //R: El archivo catalogo.json debe existir o estar vacio.
 //F: Mostrar el catalogo completo.
+//E: No recibe datos.
+//S: Muestra todas las producciones y su disponibilidad.
+//R: Los archivos JSON deben tener formato correcto.
+//F: Mostrar el catalogo completo.
 void mostrarCatalogo(void)
 {
     Produccion *catalogo = NULL;
+    Ejemplar *ejemplares = NULL;
+
     int cantidad = 0;
+    int cantidadEjemplares = 0;
+
+    int disponibles;
     int i;
 
     // Cargar catalogo
@@ -1147,18 +1180,53 @@ void mostrarCatalogo(void)
         return;
     }
 
-    // Revisar si esta vacio
-    if (cantidad == 0)
+    // Cargar ejemplares
+    if (cargarEjemplaresJSON(
+        &ejemplares,
+        &cantidadEjemplares
+    ) == 0)
     {
-        printf("El catalogo esta vacio\n");
+        printf("No se pudieron cargar los ejemplares\n");
+
+        for (i = 0; i < cantidad; i++)
+        {
+            liberarProduccion(&catalogo[i]);
+        }
+
+        free(catalogo);
+
         return;
     }
 
-    printf("\n----- CATALOGO COMPLETO -----\n");
+    // Revisar si el catalogo esta vacio
+    if (cantidad == 0)
+    {
+        printf("El catalogo esta vacio\n");
 
-    // Mostrar cada produccion
+        free(catalogo);
+
+        for (i = 0; i < cantidadEjemplares; i++)
+        {
+            liberarEjemplar(&ejemplares[i]);
+        }
+
+        free(ejemplares);
+
+        return;
+    }
+
+    printf("\n- CATALOGO COMPLETO -\n");
+
+    // Mostrar producciones
     for (i = 0; i < cantidad; i++)
     {
+        // Contar disponibles
+        disponibles = cantidadDisponibles(
+            ejemplares,
+            cantidadEjemplares,
+            catalogo[i].nombre
+        );
+
         printf("\nProduccion %d\n", i + 1);
 
         printf(
@@ -1187,16 +1255,60 @@ void mostrarCatalogo(void)
         );
 
         printf(
-            "Cantidad: %d\n",
+            "Cantidad total: %d\n",
             catalogo[i].cantidadEjemplares
+        );
+
+        printf(
+            "Disponibles: %d\n",
+            disponibles
         );
     }
 
-    // Liberar memoria
+    // Liberar producciones
     for (i = 0; i < cantidad; i++)
     {
         liberarProduccion(&catalogo[i]);
     }
 
     free(catalogo);
+
+    // Liberar ejemplares
+    for (i = 0; i < cantidadEjemplares; i++)
+    {
+        liberarEjemplar(&ejemplares[i]);
+    }
+
+    free(ejemplares);
+}
+//E: Lista de ejemplares, cantidad y nombre de produccion.
+//S: Cantidad de ejemplares disponibles.
+//R: Los ejemplares deben estar cargados.
+//F: Contar ejemplares disponibles de una produccion.
+int cantidadDisponibles(
+    Ejemplar *ejemplares,
+    int cantidadEjemplares,
+    char *nombre
+)
+{
+    int i;
+    int disponibles = 0;
+
+    for (i = 0; i < cantidadEjemplares; i++)
+    {
+        // Revisar si pertenece a la produccion
+        if (strcmp(
+            ejemplares[i].nombreProduccion,
+            nombre
+        ) == 0)
+        {
+            // Revisar si esta disponible
+            if (ejemplares[i].disponible == 1)
+            {
+                disponibles++;
+            }
+        }
+    }
+
+    return disponibles;
 }
