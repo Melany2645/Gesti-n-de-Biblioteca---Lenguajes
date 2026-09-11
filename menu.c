@@ -11,36 +11,36 @@
 void operativas(int opcion) {
 
     printf("-----Opciones Operativas-----\n");
-    printf("1. Gestión del catálogo.\n");
-    printf("2. Gestión de usuario.\n");
+    printf("1. Gestion del catalogo.\n");
+    printf("2. Gestion de usuario.\n");
     printf("3. Historial de préstamos\n");
-    printf("4. Estadísticas\n");
+    printf("4. Estadisticas\n");
     printf("5. Volver\n");
     scanf("%d", &opcion);
 
     switch (opcion) {
         case 1:
-            printf("Gestión del catálogo seleccionada.\n");
+            printf("Gestión del catalogo seleccionada.\n");
             menuCatalogo(); // Llamar a la función correspondiente para la gestión del catálogo
             break;
         case 2:
-            printf("Gestión de usuario seleccionada.\n");
+            printf("Gestian de usuario seleccionada.\n");
             menuUsuario(); // Llamar a la función correspondiente para la gestión de usuario
             break;
         case 3:
-            printf("Historial de préstamos seleccionado.\n");
+            printf("Historial de prestamos seleccionado.\n");
             menuPrestamos();
             break;
         case 4:
-            printf("Estadísticas seleccionadas.\n");
+            printf("Estadisticas seleccionadas.\n");
             //menuEstadisticas(); // Llamar a la función correspondiente para las estadísticas
             break;
         case 5:
-            printf("Volviendo al menú principal.\n");
+            printf("Volviendo al menu principal.\n");
             mainPrincipal(); // Llamar a la función main para volver al menú principal
             break;
         default:
-            printf("Opción no válida. Intente nuevamente.\n");
+            printf("Opcion no valida. Intente nuevamente.\n");
             break;
     }
 }
@@ -48,16 +48,16 @@ void operativas(int opcion) {
 void generales(int opcion) {
 
     printf("-----Opciones Generales-----\n");
-    printf("1. Búsqueda simple\n");
+    printf("1. Busqueda simple\n");
     printf("2. Búsqueda avanzada\n");
     printf("3. Préstamo de ejemplares\n");
-    printf("4. Devolución de ejemplares\n");
+    printf("4. Devolucion de ejemplares\n");
     printf("5. Volver\n");
     scanf("%d", &opcion);
 
     switch (opcion) {
         case 1:
-            printf("Búsqueda simple seleccionada.\n");
+            printf("Busqueda simple seleccionada.\n");
             //menuBusquedaSimple(); // Llamar a la función correspondiente para la búsqueda simple
             break;
         case 2:
@@ -65,11 +65,11 @@ void generales(int opcion) {
             //menuBusquedaAvanzada(); // Llamar a la función correspondiente para la búsqueda avanzada
             break;
         case 3:
-            printf("Préstamo de ejemplares seleccionado.\n");
+            printf("Prestamo de ejemplares seleccionado.\n");
             menuPrestamos();
             break;
         case 4:
-            printf("Devolución de ejemplares seleccionada.\n");
+            printf("Devolucion de ejemplares seleccionada.\n");
             //menuDevolucion(); // Llamar a la función correspondiente para la devolución de ejemplares
             break;
         case 5:
@@ -77,7 +77,7 @@ void generales(int opcion) {
             mainPrincipal(); // Llamar a la función main para volver al menú principal
             break;
         default:
-            printf("Opción no válida. Intente nuevamente.\n");
+            printf("Opción no valida. Intente nuevamente.\n");
             break;
     }
 }
@@ -88,7 +88,7 @@ void mainPrincipal(void) {
     printf("1. Opciones Operativas.\n");
     printf("2. Opciones Generales.\n");
     printf("3. Salir\n");
-    printf("Seleccione una opción:\n");
+    printf("Seleccione una opcion:\n");
     scanf("%d", &opcion);
 
     switch (opcion) {
@@ -104,7 +104,7 @@ void mainPrincipal(void) {
             printf("Saliendo del programa.\n");
             exit(0);
         default:
-            printf("Opción no válida. Intente nuevamente.\n");
+            printf("Opcion no valida. Intente nuevamente.\n");
             break;
     }
 }

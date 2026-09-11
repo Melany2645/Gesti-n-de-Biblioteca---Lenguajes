@@ -5,6 +5,7 @@ typedef struct{
     int opcion;
 } Menu;
 
+
 // métodos
 void operativas(int opcion);
 void generales(int opcion);

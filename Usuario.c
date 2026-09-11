@@ -344,9 +344,3 @@ void menuUsuario(void) {
     LiberarListaUsuarios(&lista);
 }
 
-/*
-int main(void) {    
-    menuUsuario();
-    return 0;
-}
-    */

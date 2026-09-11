@@ -1,0 +1,51 @@
+[{
+		"idPrestamo":	1,
+		"idUsuario":	1,
+		"estado":	0,
+		"entregaTardia":	0,
+		"multa":	0,
+		"fechaInicio":	{
+			"dia":	12,
+			"mes":	10,
+			"anio":	2007
+		},
+		"fechaFin":	{
+			"dia":	12,
+			"mes":	11,
+			"anio":	2007
+		},
+		"devolucion":	{
+			"dia":	0,
+			"mes":	0,
+			"anio":	0
+		},
+		"ejemplares":	[{
+				"id":	1,
+				"produccion":	"Don Quijote"
+			}]
+	}, {
+		"idPrestamo":	2,
+		"idUsuario":	1,
+		"estado":	0,
+		"entregaTardia":	0,
+		"multa":	0,
+		"fechaInicio":	{
+			"dia":	11,
+			"mes":	9,
+			"anio":	2026
+		},
+		"fechaFin":	{
+			"dia":	12,
+			"mes":	9,
+			"anio":	2026
+		},
+		"devolucion":	{
+			"dia":	0,
+			"mes":	0,
+			"anio":	0
+		},
+		"ejemplares":	[{
+				"id":	1,
+				"produccion":	"Don Quijote"
+			}]
+	}]

@@ -2,6 +2,8 @@
 #define PRESTAMOS_DEVOLUCIONES_H
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "Usuario.h"
 #include "Biblioteca.h"
 
@@ -13,14 +15,13 @@ typedef enum {
 } EstadoPrestamo;
 
 // Manejamos la fecha
-typedef struct
-{
+typedef struct {
     int dia, mes, anio;
 } Fecha;
 
+
 // Manejo de los datos del prestamo
-typedef struct
-{
+typedef struct {
     int idUsuario;
     int idPrestamo;
     Fecha fechaInicio;
@@ -32,11 +33,9 @@ typedef struct
     int *idEjemplares;
     char **nombreProducciones;
     int cantidadEjemplares;
-
 } Prestamo;
 
-typedef struct 
-{
+typedef struct {
     Prestamo **prestamos;
     int cantidadPrestamos;
     int capacidadPrestamos;
@@ -45,18 +44,19 @@ typedef struct
     ListaUsuarios *usuarios;
     Ejemplar *ejemplares;
     int cantidadEjemplares;
-
 } SistemaPrestamos;
-
 
 // Métodos
 Usuario *buscarUsuarioPorID(ListaUsuarios *lista, int id);
 
 void inicializarSistemaPrestamos(SistemaPrestamos *sistema);
-void liberarPrestamos(SistemaPrestamos *prestamo);
+void liberarPrestamo(Prestamo *prestamo);
 void liberarSistemaPrestamos(SistemaPrestamos *sistema);
 
-int realizarPrestamo(SistemaPrestamos *sistema, int idUsuario, Fecha fechaInicio, Fecha fechaFin, int *idEjemplaresSolicitados, int cantidad);
+// MODIFICADO: ahora recibe nombre de usuario y nombres de producciones
+int realizarPrestamo(SistemaPrestamos *sistema, const char *nombreUsuario,
+                     Fecha fechaInicio, Fecha fechaFin,
+                     char **nombresProducciones, int cantidad);
 
 void consultarHistorialPrestamos(SistemaPrestamos *sistema, Fecha desde, Fecha hasta);
 void consultarVencimientos(SistemaPrestamos *sistema, Fecha fechaActual);
@@ -67,6 +67,5 @@ int crearArchivoPrestamos(void);
 int guardarPrestamosJSON(SistemaPrestamos *sistema);
 void menuPrestamos(void);
 void menuDevoluciones(void);
-
 
 #endif // PRESTAMOS_DEVOLUCIONES_H
