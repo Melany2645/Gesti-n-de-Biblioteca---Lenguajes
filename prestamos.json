@@ -1,9 +1,9 @@
 [{
 		"idPrestamo":	1,
 		"idUsuario":	1,
-		"estado":	0,
-		"entregaTardia":	0,
-		"multa":	0,
+		"estado":	2,
+		"entregaTardia":	1,
+		"multa":	700000,
 		"fechaInicio":	{
 			"dia":	12,
 			"mes":	10,
@@ -15,9 +15,9 @@
 			"anio":	2007
 		},
 		"devolucion":	{
-			"dia":	0,
-			"mes":	0,
-			"anio":	0
+			"dia":	12,
+			"mes":	10,
+			"anio":	2009
 		},
 		"ejemplares":	[{
 				"id":	1,

@@ -53,10 +53,10 @@ void inicializarSistemaPrestamos(SistemaPrestamos *sistema);
 void liberarPrestamo(Prestamo *prestamo);
 void liberarSistemaPrestamos(SistemaPrestamos *sistema);
 
-// MODIFICADO: ahora recibe nombre de usuario y nombres de producciones
 int realizarPrestamo(SistemaPrestamos *sistema, const char *nombreUsuario,
                      Fecha fechaInicio, Fecha fechaFin,
                      char **nombresProducciones, int cantidad);
+void mostrarTodosLosPrestamos(void);
 
 void consultarHistorialPrestamos(SistemaPrestamos *sistema, Fecha desde, Fecha hasta);
 void consultarVencimientos(SistemaPrestamos *sistema, Fecha fechaActual);

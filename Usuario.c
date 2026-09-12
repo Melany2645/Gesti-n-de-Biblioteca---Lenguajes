@@ -1,9 +1,5 @@
 #include "Usuario.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 void LimpiarBuffer(void) {
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
@@ -21,24 +17,16 @@ void CapturarDatosUsuario(char *nombre, char *direccion) {
     LimpiarBuffer();
 }
 
-int ObtenerMaximoID(const char *nombreArchivo) {
-    FILE *archivo = fopen(nombreArchivo, "r");
-    if (archivo == NULL) return 0;
+int ObtenerMaximoID(ListaUsuarios *lista) {
+    if (lista == NULL) return 0;
     
     int maxID = 0;
-    int idActual;
-    char linea[300];
-    
-    while (fgets(linea, sizeof(linea), archivo) != NULL) {
-        char *ptr = strstr(linea, "\"id\":");
-        if (ptr != NULL) {
-            if (sscanf(ptr, "\"id\": %d", &idActual) == 1) {
-                if (idActual > maxID) maxID = idActual;
-            }
+    for (int i = 0; i < lista->cantidad; i++) {
+        if (lista->usuarios[i].id > maxID) {
+            maxID = lista->usuarios[i].id;
         }
     }
     
-    fclose(archivo);
     return maxID;
 }
 
@@ -46,50 +34,111 @@ void CargarUsuariosDesdeArchivo(ListaUsuarios *lista, const char *nombreArchivo)
     FILE *archivo = fopen(nombreArchivo, "r");
     if (archivo == NULL) return;
 
-    char linea[300];
-    
-    while (fgets(linea, sizeof(linea), archivo) != NULL) {
-        int id;
-        char nombreTemp[MAX_NOMBRE];
-        char direccionTemp[MAX_DIRECCION];
+    fseek(archivo, 0, SEEK_END);
+    long tamano = ftell(archivo);
+    rewind(archivo);
 
-        if (sscanf(linea, "{\"id\": %d, \"nombre\": \"%[^\"]\", \"direccion\": \"%[^\"]\"}", 
-                   &id, nombreTemp, direccionTemp) == 3) {
-            
-            if (lista->cantidad >= lista->capacidad) {
-                int nuevaCapacidad = (lista->capacidad == 0) ? 5 : lista->capacidad * 2;
-                lista->usuarios = realloc(lista->usuarios, nuevaCapacidad * sizeof(Usuario));
-                lista->capacidad = nuevaCapacidad;
-            }
-
-            int indice = lista->cantidad;
-            lista->usuarios[indice].id = id;
-            lista->usuarios[indice].nombre = malloc(strlen(nombreTemp) + 1);
-            lista->usuarios[indice].direccion = malloc(strlen(direccionTemp) + 1);
-            
-            strcpy(lista->usuarios[indice].nombre, nombreTemp);
-            strcpy(lista->usuarios[indice].direccion, direccionTemp);
-            lista->cantidad++;
-        }
+    char *texto = malloc((tamano + 1) * sizeof(char));
+    if (texto == NULL) {
+        fclose(archivo);
+        return;
     }
+
+    fread(texto, sizeof(char), tamano, archivo);
+    texto[tamano] = '\0';
     fclose(archivo);
+
+    cJSON *arreglo = cJSON_Parse(texto);
+    free(texto);
+
+    if (arreglo == NULL) return;
+
+    int total = cJSON_GetArraySize(arreglo);
+
+    for (int i = 0; i < total; i++) {
+        cJSON *objeto = cJSON_GetArrayItem(arreglo, i);
+        
+        cJSON *id_json = cJSON_GetObjectItemCaseSensitive(objeto, "id");
+        cJSON *nombre_json = cJSON_GetObjectItemCaseSensitive(objeto, "nombre");
+        cJSON *direccion_json = cJSON_GetObjectItemCaseSensitive(objeto, "direccion");
+
+        if (!cJSON_IsNumber(id_json) || !cJSON_IsString(nombre_json) || !cJSON_IsString(direccion_json)) {
+            continue;
+        }
+
+        if (lista->cantidad >= lista->capacidad) {
+            int nuevaCapacidad = (lista->capacidad == 0) ? 5 : lista->capacidad * 2;
+            Usuario *nuevoArreglo = realloc(lista->usuarios, nuevaCapacidad * sizeof(Usuario));
+            
+            if (nuevoArreglo == NULL) {
+                cJSON_Delete(arreglo);
+                return;
+            }
+            lista->usuarios = nuevoArreglo;
+            lista->capacidad = nuevaCapacidad;
+        }
+
+        int indice = lista->cantidad;
+        lista->usuarios[indice].id = id_json->valueint;
+        
+        lista->usuarios[indice].nombre = malloc(strlen(nombre_json->valuestring) + 1);
+        lista->usuarios[indice].direccion = malloc(strlen(direccion_json->valuestring) + 1);
+
+        if (lista->usuarios[indice].nombre == NULL || lista->usuarios[indice].direccion == NULL) {
+            cJSON_Delete(arreglo);
+            return;
+        }
+
+        strcpy(lista->usuarios[indice].nombre, nombre_json->valuestring);
+        strcpy(lista->usuarios[indice].direccion, direccion_json->valuestring);
+        lista->cantidad++;
+    }
+
+    cJSON_Delete(arreglo);
 }
 
 void GuardarUsuariosEnArchivo(ListaUsuarios *lista, const char *nombreArchivo) {
-    FILE *archivo = fopen(nombreArchivo, "w");
-    if (archivo == NULL) {
-        printf("Error: No se pudo guardar el archivo.\n");
+    cJSON *arreglo = cJSON_CreateArray();
+    if (arreglo == NULL) {
+        printf("Error: No se pudo crear el arreglo JSON.\n");
         return;
     }
-    
+
     for (int i = 0; i < lista->cantidad; i++) {
-        fprintf(archivo, "{\"id\": %d, \"nombre\": \"%s\", \"direccion\": \"%s\"}\n", 
-                lista->usuarios[i].id, 
-                lista->usuarios[i].nombre, 
-                lista->usuarios[i].direccion);
+        cJSON *objeto = cJSON_CreateObject();
+        if (objeto == NULL) {
+            cJSON_Delete(arreglo);
+            printf("Error: No se pudo crear el objeto JSON.\n");
+            return;
+        }
+
+        cJSON_AddNumberToObject(objeto, "id", lista->usuarios[i].id);
+        cJSON_AddStringToObject(objeto, "nombre", lista->usuarios[i].nombre);
+        cJSON_AddStringToObject(objeto, "direccion", lista->usuarios[i].direccion);
+
+        cJSON_AddItemToArray(arreglo, objeto);
     }
-    
+
+    char *textoJSON = cJSON_Print(arreglo);
+    if (textoJSON == NULL) {
+        cJSON_Delete(arreglo);
+        printf("Error: No se pudo convertir el JSON a texto.\n");
+        return;
+    }
+
+    FILE *archivo = fopen(nombreArchivo, "w");
+    if (archivo == NULL) {
+        cJSON_free(textoJSON);
+        cJSON_Delete(arreglo);
+        printf("Error: No se pudo abrir el archivo para guardar.\n");
+        return;
+    }
+
+    fprintf(archivo, "%s", textoJSON);
     fclose(archivo);
+
+    cJSON_free(textoJSON);
+    cJSON_Delete(arreglo);
 }
 
 void AgregarUsuario(ListaUsuarios *lista, const char *nombreArchivo, 
@@ -97,7 +146,7 @@ void AgregarUsuario(ListaUsuarios *lista, const char *nombreArchivo,
     
     if (lista == NULL) return;
 
-    int nuevoID = ObtenerMaximoID(nombreArchivo) + 1;
+    int nuevoID = ObtenerMaximoID(lista) + 1;
 
     if (lista->cantidad >= lista->capacidad) {
         int nuevaCapacidad = (lista->capacidad == 0) ? 5 : lista->capacidad * 2;
@@ -165,7 +214,6 @@ void ModificarUsuario(ListaUsuarios *lista, const char *nombreArchivo, int id) {
     char nombre[MAX_NOMBRE];
     char direccion[MAX_DIRECCION];
     
-    /* Inicializar a vacío para evitar basura */
     nombre[0] = '\0';
     direccion[0] = '\0';
     
@@ -173,7 +221,6 @@ void ModificarUsuario(ListaUsuarios *lista, const char *nombreArchivo, int id) {
     printf("Nombre actual: %s\n", lista->usuarios[indice].nombre);
     printf("Nuevo nombre (Enter para mantener): ");
     
-    /* Verificar si scanf leyó algo */
     if (scanf("%[^\n]", nombre) != 1) {
         nombre[0] = '\0';
     }
@@ -187,7 +234,6 @@ void ModificarUsuario(ListaUsuarios *lista, const char *nombreArchivo, int id) {
     }
     LimpiarBuffer();
     
-    /* Solo actualizar si se ingresó algo nuevo */
     if (strlen(nombre) > 0) {
         free(lista->usuarios[indice].nombre);
         lista->usuarios[indice].nombre = malloc(strlen(nombre) + 1);
@@ -343,4 +389,3 @@ void menuUsuario(void) {
 
     LiberarListaUsuarios(&lista);
 }
-

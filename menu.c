@@ -5,6 +5,7 @@
 #include "Biblioteca.h"
 #include "Usuario.h"
 #include "prestamosDevoluciones.h"
+#include "BusquedaSimpleAvanzada.h"
 
 #include "menu.h"
 
@@ -13,14 +14,14 @@ void operativas(int opcion) {
     printf("-----Opciones Operativas-----\n");
     printf("1. Gestion del catalogo.\n");
     printf("2. Gestion de usuario.\n");
-    printf("3. Historial de préstamos\n");
+    printf("3. Historial de prestamos\n");
     printf("4. Estadisticas\n");
     printf("5. Volver\n");
     scanf("%d", &opcion);
 
     switch (opcion) {
         case 1:
-            printf("Gestión del catalogo seleccionada.\n");
+            printf("Gestion del catalogo seleccionada.\n");
             menuCatalogo(); // Llamar a la función correspondiente para la gestión del catálogo
             break;
         case 2:
@@ -29,7 +30,7 @@ void operativas(int opcion) {
             break;
         case 3:
             printf("Historial de prestamos seleccionado.\n");
-            menuPrestamos();
+            mostrarTodosLosPrestamos();  
             break;
         case 4:
             printf("Estadisticas seleccionadas.\n");
@@ -49,8 +50,8 @@ void generales(int opcion) {
 
     printf("-----Opciones Generales-----\n");
     printf("1. Busqueda simple\n");
-    printf("2. Búsqueda avanzada\n");
-    printf("3. Préstamo de ejemplares\n");
+    printf("2. Busqueda avanzada\n");
+    printf("3. Prestamo de ejemplares\n");
     printf("4. Devolucion de ejemplares\n");
     printf("5. Volver\n");
     scanf("%d", &opcion);
@@ -58,11 +59,11 @@ void generales(int opcion) {
     switch (opcion) {
         case 1:
             printf("Busqueda simple seleccionada.\n");
-            //menuBusquedaSimple(); // Llamar a la función correspondiente para la búsqueda simple
+            busquedaSimple();
             break;
         case 2:
-            printf("Búsqueda avanzada seleccionada.\n");
-            //menuBusquedaAvanzada(); // Llamar a la función correspondiente para la búsqueda avanzada
+            printf("Busqueda avanzada seleccionada.\n");
+            busquedaAvanzada();
             break;
         case 3:
             printf("Prestamo de ejemplares seleccionado.\n");
@@ -70,7 +71,7 @@ void generales(int opcion) {
             break;
         case 4:
             printf("Devolucion de ejemplares seleccionada.\n");
-            //menuDevolucion(); // Llamar a la función correspondiente para la devolución de ejemplares
+            menuDevoluciones();
             break;
         case 5:
             printf("Volviendo al menú principal.\n");

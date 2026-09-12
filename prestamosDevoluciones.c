@@ -24,7 +24,6 @@ static void limpiarBuffer(void) {
     while ((c = getchar()) != '\n' && c != EOF);
 }
 
-// Elimina espacios al inicio y final de una cadena
 static char *trim(char *str) {
     char *end;
     while (isspace((unsigned char)*str)) str++;
@@ -35,7 +34,6 @@ static char *trim(char *str) {
     return str;
 }
 
-// Compara dos cadenas ignorando mayúsculas/minúsculas
 static int compararSinMayusculas(const char *a, const char *b) {
     while (*a && *b) {
         if (tolower((unsigned char)*a) != tolower((unsigned char)*b)) {
@@ -100,7 +98,6 @@ static Ejemplar *buscarEjemplarPorID(SistemaPrestamos *sistema, int id) {
     return NULL;
 }
 
-// Busca la producción en el catálogo comparando con cada nombre
 static ProduccionDisponible *buscarProduccionPorNombre(
     ProduccionDisponible *producciones,
     int cantidad,
@@ -108,23 +105,22 @@ static ProduccionDisponible *buscarProduccionPorNombre(
 ) {
     if (producciones == NULL || nombreBuscado == NULL) return NULL;
 
-    // Limpiamos el nombre buscado (quitar espacios al inicio/final)
     char nombreLimpio[200];
     strncpy(nombreLimpio, nombreBuscado, sizeof(nombreLimpio) - 1);
     nombreLimpio[sizeof(nombreLimpio) - 1] = '\0';
     char *nombreTrim = trim(nombreLimpio);
 
-    // Recorremos cada producción del catálogo y comparamos
     for (int i = 0; i < cantidad; i++) {
-        // Comparación exacta ignorando mayúsculas/minúsculas
-        if (compararSinMayusculas(producciones[i].nombreProduccion, nombreTrim) == 0) {
+        if (strstr(producciones[i].nombreProduccion, nombreTrim) != NULL) {
+            return &producciones[i];
+        }
+        if (strstr(nombreTrim, producciones[i].nombreProduccion) != NULL) {
             return &producciones[i];
         }
     }
 
     return NULL;
 }
-
 
 
 void inicializarSistemaPrestamos(SistemaPrestamos *sistema) {
@@ -156,7 +152,6 @@ void liberarSistemaPrestamos(SistemaPrestamos *sistema) {
     }
     free(sistema->prestamos);
 }
-
 
 
 int crearArchivoPrestamos(void) {
@@ -304,6 +299,97 @@ static int cargarPrestamosJSON(SistemaPrestamos *sistema) {
 }
 
 
+void mostrarTodosLosPrestamos(void) {
+    FILE *archivo = fopen(ARCHIVO_PRESTAMOS, "r");
+    if (archivo == NULL) {
+        printf("No hay prestamos registrados.\n");
+        return;
+    }
+
+    fseek(archivo, 0, SEEK_END);
+    long tamano = ftell(archivo);
+    rewind(archivo);
+
+    char *texto = malloc((tamano + 1) * sizeof(char));
+    if (texto == NULL) {
+        fclose(archivo);
+        printf("Error de memoria.\n");
+        return;
+    }
+
+    fread(texto, sizeof(char), tamano, archivo);
+    texto[tamano] = '\0';
+    fclose(archivo);
+
+    cJSON *arreglo = cJSON_Parse(texto);
+    free(texto);
+
+    if (arreglo == NULL) {
+        printf("No hay prestamos registrados.\n");
+        return;
+    }
+
+    int total = cJSON_GetArraySize(arreglo);
+    if (total == 0) {
+        printf("No hay prestamos registrados.\n");
+        cJSON_Delete(arreglo);
+        return;
+    }
+
+    printf("\n========== HISTORIAL DE PRESTAMOS ==========\n");
+    printf("Total de prestamos: %d\n", total);
+
+    for (int i = 0; i < total; i++) {
+        cJSON *obj = cJSON_GetArrayItem(arreglo, i);
+
+        cJSON *idPrestamo = cJSON_GetObjectItemCaseSensitive(obj, "idPrestamo");
+        cJSON *idUsuario = cJSON_GetObjectItemCaseSensitive(obj, "idUsuario");
+        cJSON *estado = cJSON_GetObjectItemCaseSensitive(obj, "estado");
+        cJSON *fechaInicio = cJSON_GetObjectItemCaseSensitive(obj, "fechaInicio");
+        cJSON *fechaFin = cJSON_GetObjectItemCaseSensitive(obj, "fechaFin");
+        cJSON *devolucion = cJSON_GetObjectItemCaseSensitive(obj, "devolucion");
+        cJSON *ejemplares = cJSON_GetObjectItemCaseSensitive(obj, "ejemplares");
+
+        const char *estadoStr = "Desconocido";
+        if (estado->valueint == ACTIVO) estadoStr = "ACTIVO";
+        else if (estado->valueint == VENCIDO) estadoStr = "VENCIDO";
+        else if (estado->valueint == FINALIZADO) estadoStr = "FINALIZADO";
+
+        printf("\n----------------------------------------\n");
+        printf("Prestamo #%d\n", idPrestamo->valueint);
+        printf("  Usuario ID: %d\n", idUsuario->valueint);
+        printf("  Estado: %s\n", estadoStr);
+        printf("  Fecha Inicio: %02d/%02d/%d\n", 
+               cJSON_GetArrayItem(fechaInicio, 0)->valueint,
+               cJSON_GetArrayItem(fechaInicio, 1)->valueint,
+               cJSON_GetArrayItem(fechaInicio, 2)->valueint);
+        printf("  Fecha Fin: %02d/%02d/%d\n",
+               cJSON_GetArrayItem(fechaFin, 0)->valueint,
+               cJSON_GetArrayItem(fechaFin, 1)->valueint,
+               cJSON_GetArrayItem(fechaFin, 2)->valueint);
+
+        if (devolucion != NULL && cJSON_GetArrayItem(devolucion, 2)->valueint != 0) {
+            printf("  Fecha Devolucion: %02d/%02d/%d\n",
+                   cJSON_GetArrayItem(devolucion, 0)->valueint,
+                   cJSON_GetArrayItem(devolucion, 1)->valueint,
+                   cJSON_GetArrayItem(devolucion, 2)->valueint);
+        }
+
+        printf("  Ejemplares:\n");
+        int numEjemplares = cJSON_GetArraySize(ejemplares);
+        for (int j = 0; j < numEjemplares; j++) {
+            cJSON *ejemplar = cJSON_GetArrayItem(ejemplares, j);
+            cJSON *nombreProd = cJSON_GetObjectItemCaseSensitive(ejemplar, "produccion");
+            printf("    - %s\n", nombreProd->valuestring);
+        }
+    }
+
+    printf("\n============================================\n");
+
+    cJSON_Delete(arreglo);
+}
+
+
 int realizarPrestamoConProducciones(
     SistemaPrestamos *sistema,
     const char *nombreUsuario,
@@ -324,7 +410,6 @@ int realizarPrestamoConProducciones(
         return 0;
     }
 
-    // Buscar usuario por nombre
     Usuario *usuario = buscarUsuarioPorNombre(sistema->usuarios, nombreUsuario);
     if (usuario == NULL) {
         printf("ERROR: Usuario con nombre '%s' NO ENCONTRADO.\n", nombreUsuario);
@@ -333,7 +418,6 @@ int realizarPrestamoConProducciones(
 
     printf("Usuario encontrado: %s (ID: %d)\n", usuario->nombre, usuario->id);
 
-    // Crear préstamo
     Prestamo *nuevo = malloc(sizeof(Prestamo));
     if (nuevo == NULL) {
         printf("Error de memoria al crear el prestamo.\n");
@@ -387,7 +471,6 @@ int realizarPrestamoConProducciones(
         printf("Ejemplar: %s (Disponibles: %d)\n", prod->nombreProduccion, prod->cantidadDisponible);
     }
 
-    // Agregar al sistema
     if (sistema->cantidadPrestamos >= sistema->capacidadPrestamos) {
         int nuevaCap = sistema->capacidadPrestamos == 0 ? 5 : sistema->capacidadPrestamos * 2;
         sistema->prestamos = realloc(sistema->prestamos, nuevaCap * sizeof(Prestamo *));
@@ -458,6 +541,7 @@ void devolverPrestamo(SistemaPrestamos *sistema, int idPrestamo, Fecha fechaDevo
     printf("Estado: FINALIZADO\n");
     printf("=======================================\n");
 }
+
 
 
 void consultarHistorialPrestamos(SistemaPrestamos *sistema, Fecha desde, Fecha hasta) {
@@ -559,12 +643,12 @@ void generarReporteEstadisticas(SistemaPrestamos *sistema, Fecha desde, Fecha ha
 }
 
 
+
 void menuPrestamos(void) {
     SistemaPrestamos sistema;
     inicializarSistemaPrestamos(&sistema);
     cargarPrestamosJSON(&sistema);
 
-    // ===== CARGAR USUARIOS =====
     ListaUsuarios listaUsuarios;
     listaUsuarios.usuarios = NULL;
     listaUsuarios.cantidad = 0;
@@ -573,7 +657,6 @@ void menuPrestamos(void) {
     sistema.usuarios = &listaUsuarios;
     printf("Usuarios cargados: %d\n", listaUsuarios.cantidad);
 
-    // ===== CARGAR PRODUCCIONES CON CANTIDAD DESDE CATALOGO.JSON =====
     ProduccionDisponible *producciones = NULL;
     int cantidadProducciones = 0;
 
@@ -670,7 +753,6 @@ void menuPrestamos(void) {
                     limpiarBuffer();
                 }
 
-                // Verificar disponibilidad antes de realizar préstamo
                 int disponible = 1;
                 for (int i = 0; i < cantidad; i++) {
                     ProduccionDisponible *prod = buscarProduccionPorNombre(
@@ -700,7 +782,6 @@ void menuPrestamos(void) {
                     );
 
                     if (idNuevo > 0) {
-                        // Reducir cantidad disponible de cada producción prestada
                         for (int i = 0; i < cantidad; i++) {
                             ProduccionDisponible *prod = buscarProduccionPorNombre(
                                 producciones, cantidadProducciones, nombresProducciones[i]
@@ -763,7 +844,6 @@ void menuPrestamos(void) {
         }
     } while (continuar);
 
-    // Liberar memoria
     for (int i = 0; i < cantidadProducciones; i++) {
         free(producciones[i].nombreProduccion);
     }
