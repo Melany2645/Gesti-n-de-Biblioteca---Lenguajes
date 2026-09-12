@@ -19,4 +19,11 @@
 		"genero":	"Fabula",
 		"resumen":	"Historia de un pequeno principe",
 		"cantidad":	5
+	}, {
+		"nombre":	"Cien anos de soledad",
+		"autor":	"Gabriel Garcia Marquez",
+		"anioPublicacion":	1967,
+		"genero":	"Realismo magico",
+		"resumen":	"Historia de la familia Buendia",
+		"cantidad":	4
 	}]

@@ -163,10 +163,10 @@ static EjemplarInfo *cargarEjemplaresConDisponibilidad(int *totalEjemplares) {
 
 void busquedaSimple(void) {
     char textoBusqueda[200];
-    
-    printf("\n========== BÚSQUEDA SIMPLE ==========\n");
+
+    printf("\n========== BUSQUEDA SIMPLE ==========\n");
     printf("Ingrese el texto a buscar: ");
-    scanf("%[^\n]", textoBusqueda);
+    scanf(" %199[^\n]", textoBusqueda);
     limpiarBuffer();
     
     if (strlen(textoBusqueda) == 0) {

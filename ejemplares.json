@@ -1,37 +1,65 @@
 [{
 		"id":	1,
-		"produccion":	"Cien años de soledad"
+		"produccion":	"Cien años de soledad",
+		"disponible":	1
 	}, {
 		"id":	2,
-		"produccion":	"Cien años de soledad"
+		"produccion":	"Cien años de soledad",
+		"disponible":	1
 	}, {
 		"id":	3,
-		"produccion":	"Cien años de soledad"
+		"produccion":	"Cien años de soledad",
+		"disponible":	1
 	}, {
 		"id":	4,
-		"produccion":	"Cien años de soledad"
+		"produccion":	"Cien años de soledad",
+		"disponible":	1
 	}, {
 		"id":	5,
-		"produccion":	"Don Quijote"
+		"produccion":	"Don Quijote",
+		"disponible":	1
 	}, {
 		"id":	6,
-		"produccion":	"Don Quijote"
+		"produccion":	"Don Quijote",
+		"disponible":	1
 	}, {
 		"id":	7,
-		"produccion":	"Don Quijote"
+		"produccion":	"Don Quijote",
+		"disponible":	1
 	}, {
 		"id":	8,
-		"produccion":	"El principito"
+		"produccion":	"El principito",
+		"disponible":	1
 	}, {
 		"id":	9,
-		"produccion":	"El principito"
+		"produccion":	"El principito",
+		"disponible":	1
 	}, {
 		"id":	10,
-		"produccion":	"El principito"
+		"produccion":	"El principito",
+		"disponible":	1
 	}, {
 		"id":	11,
-		"produccion":	"El principito"
+		"produccion":	"El principito",
+		"disponible":	1
 	}, {
 		"id":	12,
-		"produccion":	"El principito"
+		"produccion":	"El principito",
+		"disponible":	1
+	}, {
+		"id":	13,
+		"produccion":	"Cien anos de soledad",
+		"disponible":	1
+	}, {
+		"id":	14,
+		"produccion":	"Cien anos de soledad",
+		"disponible":	1
+	}, {
+		"id":	15,
+		"produccion":	"Cien anos de soledad",
+		"disponible":	1
+	}, {
+		"id":	16,
+		"produccion":	"Cien anos de soledad",
+		"disponible":	1
 	}]

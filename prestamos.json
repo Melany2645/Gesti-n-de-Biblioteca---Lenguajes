@@ -106,4 +106,31 @@
 				"id":	1,
 				"produccion":	"Don Quijote"
 			}]
+	}, {
+		"idPrestamo":	5,
+		"idUsuario":	1,
+		"estado":	2,
+		"entregaTardia":	0,
+		"costoPrestamo":	1200,
+		"multa":	0,
+		"totalPagar":	1200,
+		"fechaInicio":	{
+			"dia":	12,
+			"mes":	9,
+			"anio":	2026
+		},
+		"fechaFin":	{
+			"dia":	20,
+			"mes":	12,
+			"anio":	2026
+		},
+		"devolucion":	{
+			"dia":	20,
+			"mes":	9,
+			"anio":	2026
+		},
+		"ejemplares":	[{
+				"id":	1,
+				"produccion":	"Don Quijote"
+			}]
 	}]

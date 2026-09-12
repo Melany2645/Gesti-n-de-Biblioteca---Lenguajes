@@ -48,64 +48,81 @@ void operativas(int opcion) {
 }
 
 void generales(int opcion) {
-    printf("-----Opciones Generales-----\n");
-    printf("1. Busqueda simple\n");
-    printf("2. Busqueda avanzada\n");
-    printf("3. Prestamo de ejemplares\n");
-    printf("4. Devolucion de ejemplares\n");
-    printf("5. Volver\n");
-    scanf("%d", &opcion);
+    int continuar = 1;
 
-    switch (opcion) {
-        case 1:
-            printf("Busqueda simple seleccionada.\n");
-            busquedaSimple();
-            break;
-        case 2:
-            printf("Busqueda avanzada seleccionada.\n");
-            busquedaAvanzada();
-            break;
-        case 3:
-            printf("Prestamo de ejemplares seleccionado.\n");
-            menuPrestamos();
-            break;
-        case 4:
-            printf("Devolucion de ejemplares seleccionada.\n");
-            menuDevoluciones();
-            break;
-        case 5:
-            printf("Volviendo al menú principal.\n");
-            mainPrincipal(); // Llamar a la función main para volver al menú principal
-            break;
-        default:
-            printf("Opción no valida. Intente nuevamente.\n");
-            break;
-    }
+    do {
+        printf("\n-----Opciones Generales-----\n");
+        printf("1. Busqueda simple\n");
+        printf("2. Busqueda avanzada\n");
+        printf("3. Prestamo de ejemplares\n");
+        printf("4. Devolucion de ejemplares\n");
+        printf("5. Volver\n");
+        printf("Seleccione una opcion: ");
+        scanf("%d", &opcion);
+
+        switch (opcion) {
+            case 1:
+                printf("Busqueda simple seleccionada.\n");
+                busquedaSimple();
+                break;
+
+            case 2:
+                printf("Busqueda avanzada seleccionada.\n");
+                busquedaAvanzada();
+                break;
+
+            case 3:
+                printf("Prestamo de ejemplares seleccionado.\n");
+                menuPrestamos();
+                break;
+
+            case 4:
+                printf("Devolucion de ejemplares seleccionada.\n");
+                menuDevoluciones();
+                break;
+
+            case 5:
+                printf("Volviendo al menu principal.\n");
+                continuar = 0;
+                break;
+
+            default:
+                printf("Opcion no valida. Intente nuevamente.\n");
+                break;
+        }
+
+    } while (continuar);
 }
 void mainPrincipal(void) {
     int opcion;
+    int continuar = 1;
 
-    printf("Bienvenido al sistema de gestión de biblioteca\n");
-    printf("1. Opciones Operativas.\n");
-    printf("2. Opciones Generales.\n");
-    printf("3. Salir\n");
-    printf("Seleccione una opcion:\n");
-    scanf("%d", &opcion);
+    do {
+        printf("\nBienvenido al sistema de gestion de biblioteca\n");
+        printf("1. Opciones Operativas.\n");
+        printf("2. Opciones Generales.\n");
+        printf("3. Salir\n");
+        printf("Seleccione una opcion: ");
+        scanf("%d", &opcion);
 
-    switch (opcion) {
-        case 1:
-            operativas(opcion);
-            // Llamar a la función correspondiente para las opciones operativas
-            break;
-        case 2:
-            generales(opcion);
-            // Llamar a la función correspondiente para las opciones generales
-            break;
-        case 3:
-            printf("Saliendo del programa.\n");
-            exit(0);
-        default:
-            printf("Opcion no valida. Intente nuevamente.\n");
-            break;
-    }
+        switch (opcion) {
+            case 1:
+                operativas(opcion);
+                break;
+
+            case 2:
+                generales(opcion);
+                break;
+
+            case 3:
+                printf("Saliendo del programa.\n");
+                continuar = 0;
+                break;
+
+            default:
+                printf("Opcion no valida. Intente nuevamente.\n");
+                break;
+        }
+
+    } while (continuar);
 }
