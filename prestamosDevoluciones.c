@@ -7,12 +7,9 @@
 #include "prestamosDevoluciones.h"
 
 #define ARCHIVO_PRESTAMOS "prestamos.json"
-#define MULTA_POR_DIA 1000.0
 #define DIAS_PROXIMO_VENCIMIENTO 5
 
-
 typedef struct {
-    /** Nombre de la producción y cantidad de ejemplares disponibles. */
     char *nombreProduccion;
     int cantidadDisponible;
 } ProduccionDisponible;
@@ -23,7 +20,7 @@ typedef struct {
 //F: Limpiar
 static void limpiarBuffer(void) {
     int c;
-    while ((c = getchar()) != '\n' && c != EOF); // Mientras no encuentre el salto de linea ni el final
+    while ((c = getchar()) != '\n' && c != EOF);
 }
 
 //E: El char que contiene una cadena
@@ -32,7 +29,6 @@ static void limpiarBuffer(void) {
 //F: Elimina espacios al inicio y al final de una cadena
 static char *trim(char *str) {
     char *final;
-    // Verficamos si un carácter es un espacio
     while (isspace((unsigned char)*str)) str++;
     if (*str == 0) return str;
     final = str + strlen(str) - 1;
@@ -43,11 +39,10 @@ static char *trim(char *str) {
 
 //E: Dos cadenas
 //S: Si son iguales o diferentes, 0 o 1 
-//R: Valores válids
+//R: Valores válidos
 //F: Compara dos cadenas ignorando diferencias entre mayúsculas y minúsculas
 static int compararSinMayusculas(const char *a, const char *b) {
-    while (*a && *b) { // Mientras tengan caracteres
-        // Conversión de tipos
+    while (*a && *b) {
         if (tolower((unsigned char)*a) != tolower((unsigned char)*b)) {
             return 1;
         }
@@ -71,7 +66,6 @@ static int compararFechas(Fecha f1, Fecha f2) {
 //S: La diferencia en días entre dos fechas
 //R: Valores válidos
 //F: Calcula la diferencia aproximada en días entre dos fechas.
-// Se utiliza calendario exacto
 static int diferenciaEntreDias(Fecha f1, Fecha f2) {
     int dias1 = f1.anio * 365 + f1.mes * 30 + f1.dia;
     int dias2 = f2.anio * 365 + f2.mes * 30 + f2.dia;
@@ -106,10 +100,10 @@ Usuario *buscarUsuarioPorID(ListaUsuarios *lista, int id) {
     return NULL;
 }
 
-//E: Lista de usuarios y nombre el usuario a buscar
-//S: El id del usuario encontrado
+//E: Lista de usuarios y nombre del usuario a buscar
+//S: El usuario encontrado
 //R: Valores válidos
-//F:cBusca un usuario por nombre
+//F: Busca un usuario por nombre (parcial o exacto)
 static Usuario *buscarUsuarioPorNombre(ListaUsuarios *lista, const char *nombre) {
     if (lista == NULL || nombre == NULL) return NULL;
     for (int i = 0; i < lista->cantidad; i++) {
@@ -121,7 +115,7 @@ static Usuario *buscarUsuarioPorNombre(ListaUsuarios *lista, const char *nombre)
 }
 
 //E: El sistema y el id a buscar
-//S: El ejemplar si lo encontro
+//S: El ejemplar si lo encontró
 //R: Valores válidos
 //F: Busca un ejemplar por identificador dentro del sistema
 static Ejemplar *buscarEjemplarPorID(SistemaPrestamos *sistema, int id) {
@@ -134,7 +128,7 @@ static Ejemplar *buscarEjemplarPorID(SistemaPrestamos *sistema, int id) {
     return NULL;
 }
 
-//E: Arreglo de producciones diponibles, cantidad y nombre que se busca
+//E: Arreglo de producciones disponibles, cantidad y nombre que se busca
 //S: Puntero a la producción encontrada
 //R: Valores válidos
 //F: Busca una producción por nombre
@@ -145,7 +139,6 @@ static ProduccionDisponible *buscarProduccionPorNombre(
 ) {
     if (producciones == NULL || nombreBuscado == NULL) return NULL;
 
-    // Limpieza y orden correcto del nombre se anda buscando para poder encontarlo sin problema
     char nombreLimpio[200];
     strncpy(nombreLimpio, nombreBuscado, sizeof(nombreLimpio) - 1);
     nombreLimpio[sizeof(nombreLimpio) - 1] = '\0';
@@ -159,9 +152,34 @@ static ProduccionDisponible *buscarProduccionPorNombre(
             return &producciones[i];
         }
     }
-
     return NULL;
 }
+
+// ============================================================
+// NUEVA FUNCIÓN: Calcular tarifas según tabla del proyecto
+// ============================================================
+
+//E: Duración del préstamo en días
+//S: Tarifa diaria del préstamo
+//R: Valor positivo
+//F: Retorna la tarifa diaria según la duración del préstamo (tabla del proyecto)
+static double obtenerTarifaDiariaPrestamo(int dias) {
+    if (dias >= 1 && dias <= 7) return 175.0;
+    if (dias >= 8 && dias <= 15) return 150.0;
+    return 100.0; // 16 días o más
+}
+
+//E: Duración del préstamo en días
+//S: Tarifa diaria de tardanza
+//R: Valor positivo
+//F: Retorna la tarifa diaria de tardanza según la duración del préstamo (tabla del proyecto)
+static double obtenerTarifaDiariaTardia(int dias) {
+    if (dias >= 1 && dias <= 7) return 100.0;
+    if (dias >= 8 && dias <= 15) return 75.0;
+    return 50.0; // 16 días o más
+}
+
+// ============================================================
 
 // Inicializa los punteros, contadores y capacidades del sistema
 void inicializarSistemaPrestamos(SistemaPrestamos *sistema) {
@@ -216,7 +234,7 @@ int crearArchivoPrestamos(void) {
 //E: El sistema
 //S: Nos indica si se guardaron los datos en el json 1 o no 0
 //R: Valores válidos
-//F: Convierte los préstamos del sistema a JSON y los guarda
+//F: Convierte los préstamos del sistema a JSON y los guarda (incluye montos de cobro)
 int guardarPrestamosJSON(SistemaPrestamos *sistema) {
     if (sistema == NULL) return 0;
 
@@ -231,7 +249,11 @@ int guardarPrestamosJSON(SistemaPrestamos *sistema) {
         cJSON_AddNumberToObject(obj, "idUsuario", p->idUsuario);
         cJSON_AddNumberToObject(obj, "estado", p->estado);
         cJSON_AddNumberToObject(obj, "entregaTardia", p->entregaTardia);
+        
+        // NUEVOS CAMPOS: Se guardan los montos de cobro
+        cJSON_AddNumberToObject(obj, "costoPrestamo", p->costoPrestamo);
         cJSON_AddNumberToObject(obj, "multa", p->multa);
+        cJSON_AddNumberToObject(obj, "totalPagar", p->totalPagar);
 
         cJSON *fInicio = cJSON_CreateObject();
         cJSON_AddNumberToObject(fInicio, "dia", p->fechaInicio.dia);
@@ -279,10 +301,6 @@ int guardarPrestamosJSON(SistemaPrestamos *sistema) {
     return 1;
 }
 
-//E: Puntero del sistema
-//S: 
-//R: 
-//F:
 /** Carga desde JSON los préstamos almacenados y reconstruye el sistema. */
 static int cargarPrestamosJSON(SistemaPrestamos *sistema) {
     FILE *archivo = fopen(ARCHIVO_PRESTAMOS, "r");
@@ -318,24 +336,39 @@ static int cargarPrestamosJSON(SistemaPrestamos *sistema) {
         p->idUsuario = cJSON_GetObjectItemCaseSensitive(obj, "idUsuario")->valueint;
         p->estado = cJSON_GetObjectItemCaseSensitive(obj, "estado")->valueint;
         p->entregaTardia = cJSON_GetObjectItemCaseSensitive(obj, "entregaTardia")->valueint;
-        p->multa = cJSON_GetObjectItemCaseSensitive(obj, "multa")->valuedouble;
-
-        //Prueba
+        
+        // NUEVOS CAMPOS: Se cargan los montos (con valores por defecto si no existen)
+        cJSON *costoObj = cJSON_GetObjectItemCaseSensitive(obj, "costoPrestamo");
+        p->costoPrestamo = costoObj ? costoObj->valuedouble : 0.0;
+        
+        cJSON *multaObj = cJSON_GetObjectItemCaseSensitive(obj, "multa");
+        p->multa = multaObj ? multaObj->valuedouble : 0.0;
+        
+        cJSON *totalObj = cJSON_GetObjectItemCaseSensitive(obj, "totalPagar");
+        p->totalPagar = totalObj ? totalObj->valuedouble : 0.0;
 
         cJSON *fInicio = cJSON_GetObjectItemCaseSensitive(obj, "fechaInicio");
-        p->fechaInicio.dia = cJSON_GetArrayItem(fInicio, "dia")->valueint;
-        p->fechaInicio.mes = cJSON_GetArrayItem(fInicio, "mes")->valueint;
-        p->fechaInicio.anio = cJSON_GetArrayItem(fInicio, "anio")->valueint;
+        if (fInicio) {
+            p->fechaInicio.dia = cJSON_GetObjectItemCaseSensitive(fInicio, "dia")->valueint;
+            p->fechaInicio.mes = cJSON_GetObjectItemCaseSensitive(fInicio, "mes")->valueint;
+            p->fechaInicio.anio = cJSON_GetObjectItemCaseSensitive(fInicio, "anio")->valueint;
+        }
 
         cJSON *fFin = cJSON_GetObjectItemCaseSensitive(obj, "fechaFin");
-        p->fechaFin.dia = cJSON_GetArrayItem(fFin, "dia")->valueint;
-        p->fechaFin.mes = cJSON_GetArrayItem(fFin, "mes")->valueint;
-        p->fechaFin.anio = cJSON_GetArrayItem(fFin, "anio")->valueint;
+        if (fFin) {
+            p->fechaFin.dia = cJSON_GetObjectItemCaseSensitive(fFin, "dia")->valueint;
+            p->fechaFin.mes = cJSON_GetObjectItemCaseSensitive(fFin, "mes")->valueint;
+            p->fechaFin.anio = cJSON_GetObjectItemCaseSensitive(fFin, "anio")->valueint;
+        }
 
         cJSON *fDev = cJSON_GetObjectItemCaseSensitive(obj, "devolucion");
-        p->devolucion.dia = cJSON_GetArrayItem(fDev, "dia")->valueint;
-        p->devolucion.mes = cJSON_GetArrayItem(fDev, "mes")->valueint;
-        p->devolucion.anio = cJSON_GetArrayItem(fDev, "anio")->valueint;
+        if (fDev) {
+            p->devolucion.dia = cJSON_GetObjectItemCaseSensitive(fDev, "dia")->valueint;
+            p->devolucion.mes = cJSON_GetObjectItemCaseSensitive(fDev, "mes")->valueint;
+            p->devolucion.anio = cJSON_GetObjectItemCaseSensitive(fDev, "anio")->valueint;
+        } else {
+            p->devolucion = (Fecha){0, 0, 0};
+        }
 
         cJSON *arrEj = cJSON_GetObjectItemCaseSensitive(obj, "ejemplares");
         p->cantidadEjemplares = cJSON_GetArraySize(arrEj);
@@ -364,7 +397,7 @@ static int cargarPrestamosJSON(SistemaPrestamos *sistema) {
 //E: Nada 
 //S: Todos los prestamos registrados 
 //R: Que exista el archivo
-//F: Lee y muestra en consola el historial completo de préstamos guardados
+//F: Lee y muestra en consola el historial completo de préstamos guardados (con montos)
 void mostrarTodosLosPrestamos(void) {
     FILE *archivo = fopen(ARCHIVO_PRESTAMOS, "r");
     if (archivo == NULL) {
@@ -415,6 +448,9 @@ void mostrarTodosLosPrestamos(void) {
         cJSON *fechaFin = cJSON_GetObjectItemCaseSensitive(obj, "fechaFin");
         cJSON *devolucion = cJSON_GetObjectItemCaseSensitive(obj, "devolucion");
         cJSON *ejemplares = cJSON_GetObjectItemCaseSensitive(obj, "ejemplares");
+        cJSON *costoPrestamo = cJSON_GetObjectItemCaseSensitive(obj, "costoPrestamo");
+        cJSON *multa = cJSON_GetObjectItemCaseSensitive(obj, "multa");
+        cJSON *totalPagar = cJSON_GetObjectItemCaseSensitive(obj, "totalPagar");
 
         const char *estadoStr = "Desconocido";
         if (estado->valueint == ACTIVO) estadoStr = "ACTIVO";
@@ -426,32 +462,37 @@ void mostrarTodosLosPrestamos(void) {
         printf("  Usuario ID: %d\n", idUsuario->valueint);
         printf("  Estado: %s\n", estadoStr);
         printf("  Fecha Inicio: %02d/%02d/%d\n", 
-               cJSON_GetArrayItem(fechaInicio, 0)->valueint,
-               cJSON_GetArrayItem(fechaInicio, 1)->valueint,
-               cJSON_GetArrayItem(fechaInicio, 2)->valueint);
+               cJSON_GetObjectItemCaseSensitive(fechaInicio, "dia")->valueint,
+               cJSON_GetObjectItemCaseSensitive(fechaInicio, "mes")->valueint,
+               cJSON_GetObjectItemCaseSensitive(fechaInicio, "anio")->valueint);
         printf("  Fecha Fin: %02d/%02d/%d\n",
-               cJSON_GetArrayItem(fechaFin, 0)->valueint,
-               cJSON_GetArrayItem(fechaFin, 1)->valueint,
-               cJSON_GetArrayItem(fechaFin, 2)->valueint);
+               cJSON_GetObjectItemCaseSensitive(fechaFin, "dia")->valueint,
+               cJSON_GetObjectItemCaseSensitive(fechaFin, "mes")->valueint,
+               cJSON_GetObjectItemCaseSensitive(fechaFin, "anio")->valueint);
 
-        if (devolucion != NULL && cJSON_GetArrayItem(devolucion, 2)->valueint != 0) {
+        if (devolucion != NULL && cJSON_GetObjectItemCaseSensitive(devolucion, "anio")->valueint != 0) {
             printf("  Fecha Devolucion: %02d/%02d/%d\n",
-                   cJSON_GetArrayItem(devolucion, 0)->valueint,
-                   cJSON_GetArrayItem(devolucion, 1)->valueint,
-                   cJSON_GetArrayItem(devolucion, 2)->valueint);
+                   cJSON_GetObjectItemCaseSensitive(devolucion, "dia")->valueint,
+                   cJSON_GetObjectItemCaseSensitive(devolucion, "mes")->valueint,
+                   cJSON_GetObjectItemCaseSensitive(devolucion, "anio")->valueint);
         }
 
         printf("  Ejemplares:\n");
         int numEjemplares = cJSON_GetArraySize(ejemplares);
         for (int j = 0; j < numEjemplares; j++) {
             cJSON *ejemplar = cJSON_GetArrayItem(ejemplares, j);
-            cJSON *nombreProd = cJSON_GetObjectItemCaseSensitive(ejemplar, "produccion");
-            printf("    - %s\n", nombreProd->valuestring);
+            printf("    - ID: %d | Produccion: %s\n", 
+                   cJSON_GetObjectItemCaseSensitive(ejemplar, "id")->valueint,
+                   cJSON_GetObjectItemCaseSensitive(ejemplar, "produccion")->valuestring);
         }
+
+        // Mostrar montos de cobro
+        if (costoPrestamo != NULL) printf("  Costo Prestamo: $%.2f\n", costoPrestamo->valuedouble);
+        if (multa != NULL) printf("  Multa: $%.2f\n", multa->valuedouble);
+        if (totalPagar != NULL) printf("  Total a Pagar: $%.2f\n", totalPagar->valuedouble);
     }
 
     printf("\n============================================\n");
-
     cJSON_Delete(arreglo);
 }
 
@@ -497,8 +538,16 @@ int realizarPrestamoConProducciones(
     nuevo->devolucion = (Fecha){0, 0, 0};
     nuevo->estado = ACTIVO;
     nuevo->entregaTardia = 0;
-    nuevo->multa = 0.0;
     nuevo->cantidadEjemplares = cantidad;
+
+    // Calcular duración estimada del préstamo para tarifa inicial
+    int duracionEstimada = diferenciaEntreDias(fechaInicio, fechaFin);
+    if (duracionEstimada <= 0) duracionEstimada = 1;
+    
+    double tarifaDiaria = obtenerTarifaDiariaPrestamo(duracionEstimada);
+    nuevo->costoPrestamo = duracionEstimada * tarifaDiaria * cantidad; // Costo por ejemplar
+    nuevo->multa = 0.0;
+    nuevo->totalPagar = nuevo->costoPrestamo;
 
     nuevo->idEjemplares = malloc(cantidad * sizeof(int));
     nuevo->nombreProducciones = malloc(cantidad * sizeof(char *));
@@ -553,6 +602,9 @@ int realizarPrestamoConProducciones(
     printf("Fecha Inicio: %02d/%02d/%d | Fecha Fin: %02d/%02d/%d\n",
            fechaInicio.dia, fechaInicio.mes, fechaInicio.anio,
            fechaFin.dia, fechaFin.mes, fechaFin.anio);
+    printf("Duracion estimada: %d dias\n", duracionEstimada);
+    printf("Tarifa diaria: $%.2f\n", tarifaDiaria);
+    printf("Costo estimado del prestamo: $%.2f\n", nuevo->costoPrestamo);
     printf("Ejemplares:\n");
     for (int i = 0; i < cantidad; i++) {
         printf("  - Produccion: %s\n", nuevo->nombreProducciones[i]);
@@ -562,7 +614,7 @@ int realizarPrestamoConProducciones(
     return nuevo->idPrestamo;
 }
 
-/** Marca un préstamo como finalizado y calcula una posible multa por atraso. */
+/** Marca un préstamo como finalizado y calcula la multa según tabla de tarifas. */
 void devolverPrestamo(SistemaPrestamos *sistema, int idPrestamo, Fecha fechaDevolucion) {
     Prestamo *p = NULL;
     for (int i = 0; i < sistema->cantidadPrestamos; i++) {
@@ -582,30 +634,62 @@ void devolverPrestamo(SistemaPrestamos *sistema, int idPrestamo, Fecha fechaDevo
         return;
     }
 
+    // Calcular días de retraso
     int diasRetraso = diferenciaEntreDias(p->fechaFin, fechaDevolucion);
+    
+    // Calcular duración total del préstamo (para determinar tarifa)
+    int duracionTotal = diferenciaEntreDias(p->fechaInicio, fechaDevolucion);
+    if (duracionTotal <= 0) duracionTotal = 1;
+    
+    // Determinar tarifas según duración del préstamo (TABLA DEL PROYECTO)
+    double tarifaDiaria = obtenerTarifaDiariaPrestamo(duracionTotal);
+    double tarifaTardia = obtenerTarifaDiariaTardia(duracionTotal);
+    
+    // Calcular costo del préstamo y multa
+    double costoPrestamo = duracionTotal * tarifaDiaria;
+    double multa = 0.0;
+    
+    if (diasRetraso > 0) {
+        multa = diasRetraso * tarifaTardia;
+    }
+    
+    double totalPagar = costoPrestamo + multa;
+    
+    // Actualizar el préstamo con los montos calculados
     p->devolucion = fechaDevolucion;
     p->estado = FINALIZADO;
-
-    if (diasRetraso > 0) {
-        p->entregaTardia = 1;
-        p->multa = diasRetraso * MULTA_POR_DIA;
-        printf("\n[ALERTA] Entrega tardia de %d dias.\n", diasRetraso);
-        printf("Multa aplicada: $%.2f\n", p->multa);
-    } else {
-        p->entregaTardia = 0;
-        p->multa = 0.0;
-        printf("\nDevolucion a tiempo. Sin multa.\n");
-    }
+    p->entregaTardia = (diasRetraso > 0) ? 1 : 0;
+    p->costoPrestamo = costoPrestamo;
+    p->multa = multa;
+    p->totalPagar = totalPagar;
 
     guardarPrestamosJSON(sistema);
 
+    // Comprobante de devolución
     Usuario *u = buscarUsuarioPorID(sistema->usuarios, p->idUsuario);
-    printf("\n===== COMPROBANTE DE DEVOLUCION =====\n");
-    printf("ID Prestamo: %d\n", p->idPrestamo);
-    printf("Usuario: %s\n", u ? u->nombre : "Desconocido");
-    printf("Fecha Devolucion: %02d/%02d/%d\n", fechaDevolucion.dia, fechaDevolucion.mes, fechaDevolucion.anio);
-    printf("Estado: FINALIZADO\n");
-    printf("=======================================\n");
+    printf("\n========== COMPROBANTE DE DEVOLUCION ==========\n");
+    printf("ID Prestamo       : %d\n", p->idPrestamo);
+    printf("Usuario           : %s\n", u ? u->nombre : "Desconocido");
+    printf("Fecha Inicio      : %02d/%02d/%d\n", p->fechaInicio.dia, p->fechaInicio.mes, p->fechaInicio.anio);
+    printf("Fecha Fin         : %02d/%02d/%d\n", p->fechaFin.dia, p->fechaFin.mes, p->fechaFin.anio);
+    printf("Fecha Devolucion  : %02d/%02d/%d\n", fechaDevolucion.dia, fechaDevolucion.mes, fechaDevolucion.anio);
+    printf("Duracion Total    : %d dias\n", duracionTotal);
+    printf("-----------------------------------------------\n");
+    printf("Tarifa Diaria     : $%.2f\n", tarifaDiaria);
+    printf("Costo Prestamo    : $%.2f\n", costoPrestamo);
+    
+    if (diasRetraso > 0) {
+        printf("\n*** ENTREGA TARDIA ***\n");
+        printf("Dias de retraso   : %d\n", diasRetraso);
+        printf("Tarifa Tardia     : $%.2f por dia\n", tarifaTardia);
+        printf("Multa Aplicada    : $%.2f\n", multa);
+    } else {
+        printf("\nDevolucion a tiempo - Sin multa\n");
+    }
+    
+    printf("-----------------------------------------------\n");
+    printf("TOTAL A PAGAR     : $%.2f\n", totalPagar);
+    printf("==============================================\n");
 }
 
 /** Consulta los préstamos iniciados dentro del rango indicado. */
@@ -623,10 +707,14 @@ void consultarHistorialPrestamos(SistemaPrestamos *sistema, Fecha desde, Fecha h
 
             printf("\n[#%d] Usuario: %s | Estado: %s\n", p->idPrestamo, u ? u->nombre : "N/A", estadoStr);
             for (int j = 0; j < p->cantidadEjemplares; j++) {
-                printf("  -> Produccion: %s\n", p->nombreProducciones[j]);
+                printf("  -> ID Ejemplar: %-5d | Produccion: %s\n", p->idEjemplares[j], p->nombreProducciones[j]);
             }
-            if (p->estado == FINALIZADO && p->entregaTardia) {
-                printf("  [!] ENTREGA TARDIA - Multa: $%.2f\n", p->multa);
+            if (p->estado == FINALIZADO) {
+                printf("  Costo: $%.2f | Multa: $%.2f | Total: $%.2f\n", 
+                       p->costoPrestamo, p->multa, p->totalPagar);
+                if (p->entregaTardia) {
+                    printf("  [!] ENTREGA TARDIA\n");
+                }
             }
         }
     }
@@ -671,6 +759,7 @@ void consultarPrestamosPorUsuario(SistemaPrestamos *sistema, int idUsuario) {
 
     printf("\n===== PRESTAMOS DE: %s (ID: %d) =====\n", u->nombre, u->id);
     int count = 0;
+    double totalGastado = 0.0;
     for (int i = 0; i < sistema->cantidadPrestamos; i++) {
         Prestamo *p = sistema->prestamos[i];
         if (p->idUsuario == idUsuario) {
@@ -680,9 +769,14 @@ void consultarPrestamosPorUsuario(SistemaPrestamos *sistema, int idUsuario) {
                    p->idPrestamo, estadoStr,
                    p->fechaInicio.dia, p->fechaInicio.mes, p->fechaInicio.anio,
                    p->fechaFin.dia, p->fechaFin.mes, p->fechaFin.anio);
+            if (p->estado == FINALIZADO) {
+                printf("  Total pagado: $%.2f\n", p->totalPagar);
+                totalGastado += p->totalPagar;
+            }
         }
     }
     if (count == 0) printf("No tiene prestamos registrados.\n");
+    else printf("\nTotal gastado por el usuario: $%.2f\n", totalGastado);
     printf("========================================\n");
 }
 
@@ -690,11 +784,13 @@ void consultarPrestamosPorUsuario(SistemaPrestamos *sistema, int idUsuario) {
 void generarReporteEstadisticas(SistemaPrestamos *sistema, Fecha desde, Fecha hasta) {
     int totalPrestamosRango = 0, totalTardios = 0;
     double multaTotal = 0.0;
+    double ingresoTotal = 0.0;
 
     for (int i = 0; i < sistema->cantidadPrestamos; i++) {
         Prestamo *p = sistema->prestamos[i];
         if (compararFechas(p->fechaInicio, desde) >= 0 && compararFechas(p->fechaInicio, hasta) <= 0) {
             totalPrestamosRango++;
+            ingresoTotal += p->totalPagar;
             if (p->entregaTardia) {
                 totalTardios++;
                 multaTotal += p->multa;
@@ -707,6 +803,7 @@ void generarReporteEstadisticas(SistemaPrestamos *sistema, Fecha desde, Fecha ha
     printf("Total de prestamos en el periodo: %d\n", totalPrestamosRango);
     printf("Total de entregas tardias: %d\n", totalTardios);
     printf("Multa total recaudada: $%.2f\n", multaTotal);
+    printf("Ingreso total (costos + multas): $%.2f\n", ingresoTotal);
     printf("==============================================================\n");
 }
 
@@ -827,15 +924,13 @@ void menuPrestamos(void) {
                     );
 
                     if (prod == NULL) {
-                        printf("ERROR: Produccion '%s' NO ENCONTRADA en el catalogo.\n",
-                               nombresProducciones[i]);
+                        printf("ERROR: Produccion '%s' NO ENCONTRADA en el catalogo.\n", nombresProducciones[i]);
                         disponible = 0;
                         break;
                     }
 
                     if (prod->cantidadDisponible <= 0) {
-                        printf("ERROR: No hay ejemplares disponibles de '%s'.\n",
-                               prod->nombreProduccion);
+                        printf("ERROR: No hay ejemplares disponibles de '%s'.\n", prod->nombreProduccion);
                         disponible = 0;
                         break;
                     }

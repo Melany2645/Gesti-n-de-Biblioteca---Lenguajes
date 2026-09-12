@@ -23,17 +23,19 @@ typedef struct {
 
 // Manejo de los datos del prestamo
 typedef struct {
-    int idUsuario;
     int idPrestamo;
+    int idUsuario;
     Fecha fechaInicio;
     Fecha fechaFin;
     Fecha devolucion;
-    EstadoPrestamo estado;
+    int estado;
     int entregaTardia;
-    double multa;
+    int cantidadEjemplares;
     int *idEjemplares;
     char **nombreProducciones;
-    int cantidadEjemplares;
+    double costoPrestamo;    // Costo base del préstamo
+    double multa;            // Multa por entrega tardía
+    double totalPagar;       // Total a pagar (costo + multa)
 } Prestamo;
 
 typedef struct {

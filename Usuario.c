@@ -255,6 +255,10 @@ void ModificarUsuario(ListaUsuarios *lista, const char *nombreArchivo, int id) {
     printf("Usuario modificado exitosamente.\n");
 }
 
+//E: Lista de usuarios, nombre del archivo y ID del usuario a eliminar
+//S: El usuario es eliminado si no tiene préstamos asociados
+//R: El usuario debe existir y no tener préstamos asociados
+//F: Elimina un usuario verificando que no tenga registros relacionados en préstamos
 void EliminarUsuario(ListaUsuarios *lista, const char *nombreArchivo, int id) {
     if (lista == NULL) return;
     
@@ -271,6 +275,49 @@ void EliminarUsuario(ListaUsuarios *lista, const char *nombreArchivo, int id) {
         return;
     }
     
+    // VERIFICAR SI EL USUARIO TIENE PRÉSTAMOS ASOCIADOS
+    FILE *archivoPrestamos = fopen("prestamos.json", "r");
+    if (archivoPrestamos != NULL) {
+        fseek(archivoPrestamos, 0, SEEK_END);
+        long tamano = ftell(archivoPrestamos);
+        rewind(archivoPrestamos);
+        
+        char *texto = malloc((tamano + 1) * sizeof(char));
+        if (texto != NULL) {
+            fread(texto, sizeof(char), tamano, archivoPrestamos);
+            texto[tamano] = '\0';
+            fclose(archivoPrestamos);
+            
+            cJSON *arreglo = cJSON_Parse(texto);
+            free(texto);
+            
+            if (arreglo != NULL) {
+                int totalPrestamos = cJSON_GetArraySize(arreglo);
+                int tienePrestamos = 0;
+                
+                for (int i = 0; i < totalPrestamos; i++) {
+                    cJSON *prestamo = cJSON_GetArrayItem(arreglo, i);
+                    cJSON *idUsuario = cJSON_GetObjectItemCaseSensitive(prestamo, "idUsuario");
+                    
+                    if (idUsuario != NULL && idUsuario->valueint == id) {
+                        tienePrestamos = 1;
+                        break;
+                    }
+                }
+                
+                cJSON_Delete(arreglo);
+                
+                if (tienePrestamos) {
+                    printf("\nERROR: No se puede eliminar el usuario ID %d.\n", id);
+                    printf("El usuario tiene préstamos asociados en el sistema.\n");
+                    printf("Primero debe eliminar o finalizar todos sus préstamos.\n");
+                    return;
+                }
+            }
+        }
+    }
+    
+    // Si no tiene préstamos, proceder con la eliminación
     char confirmacion;
     printf("Eliminar usuario ID %d? (s/n): ", id);
     scanf(" %c", &confirmacion);

@@ -1,5 +1,6 @@
 #include "Estadisticas.h"
 #include "Usuario.h"
+#include "menu.h"
 
 // Función auxiliar para limpiar buffer
 static void limpiarBuffer(void) {
@@ -155,7 +156,7 @@ void estadisticasProduccionesMasPrestadas(void) {
 
 
 void estadisticasUsuarioMasPrestamos(void) {
-    printf("\n========== TOP 3 USUARIOS CON MÁS PRESTAMOS ==========\n");
+    printf("\n========== TOP 3 USUARIOS CON MÁS PRÉSTAMOS ==========\n");
     
     // Abrir archivo de préstamos
     FILE *archivoPrestamos = fopen("prestamos.json", "r");
@@ -272,6 +273,8 @@ void estadisticasUsuarioMasPrestamos(void) {
             conteos[i].nombreUsuario ? conteos[i].nombreUsuario : "Desconocido",
             conteos[i].cantidadPrestamos);
     }
+    
+    printf("\n========================================================\n");
     
     // Liberar memoria
     for (int i = 0; i < uniqueCount; i++) {
@@ -533,7 +536,7 @@ void menuEstadisticas(void) {
     do {
         printf("\n========== MENU DE ESTADISTICAS ==========\n");
         printf("1. Top 3 producciones mas prestadas\n");
-        printf("2. Usuario con mas prestamos\n");
+        printf("2. Top 3 usuarios con mas prestamos\n");
         printf("3. Top 5 meses/anio con mas dinero\n");
         printf("4. Estadisticas por genero\n");
         printf("5. Volver al menu principal\n");
@@ -561,7 +564,7 @@ void menuEstadisticas(void) {
                 break;
             case 5:
                 printf("Volviendo al menu principal...\n");
-                continuar = 0;
+                mainPrincipal();
                 break;
             default:
                 printf("Opcion no valida. Intente nuevamente.\n");
