@@ -11,31 +11,43 @@
 #define DIAS_PROXIMO_VENCIMIENTO 5
 
 
-
 typedef struct {
+    /** Nombre de la producción y cantidad de ejemplares disponibles. */
     char *nombreProduccion;
     int cantidadDisponible;
 } ProduccionDisponible;
 
-
-
+//E: Nada
+//S: Se limpia los caracteres que sobren en la entrada estándar
+//R: La limpieza
+//F: Limpiar
 static void limpiarBuffer(void) {
     int c;
-    while ((c = getchar()) != '\n' && c != EOF);
+    while ((c = getchar()) != '\n' && c != EOF); // Mientras no encuentre el salto de linea ni el final
 }
 
+//E: El char que contiene una cadena
+//S: El char sin espacios al inicio ni al final
+//R: Tiene que ser char
+//F: Elimina espacios al inicio y al final de una cadena
 static char *trim(char *str) {
-    char *end;
+    char *final;
+    // Verficamos si un carácter es un espacio
     while (isspace((unsigned char)*str)) str++;
     if (*str == 0) return str;
-    end = str + strlen(str) - 1;
-    while (end > str && isspace((unsigned char)*end)) end--;
-    end[1] = '\0';
+    final = str + strlen(str) - 1;
+    while (final > str && isspace((unsigned char)*final)) final--;
+    final[1] = '\0';
     return str;
 }
 
+//E: Dos cadenas
+//S: Si son iguales o diferentes, 0 o 1 
+//R: Valores válids
+//F: Compara dos cadenas ignorando diferencias entre mayúsculas y minúsculas
 static int compararSinMayusculas(const char *a, const char *b) {
-    while (*a && *b) {
+    while (*a && *b) { // Mientras tengan caracteres
+        // Conversión de tipos
         if (tolower((unsigned char)*a) != tolower((unsigned char)*b)) {
             return 1;
         }
@@ -45,18 +57,31 @@ static int compararSinMayusculas(const char *a, const char *b) {
     return *a != *b;
 }
 
+//E: Dos fechas
+//S: La diferencia entre las fechas
+//R: Valores válidos
+//F: Compara dos fechas en orden cronológico
 static int compararFechas(Fecha f1, Fecha f2) {
     if (f1.anio != f2.anio) return f1.anio - f2.anio;
     if (f1.mes != f2.mes) return f1.mes - f2.mes;
     return f1.dia - f2.dia;
 }
 
+//E: Dos fechas
+//S: La diferencia en días entre dos fechas
+//R: Valores válidos
+//F: Calcula la diferencia aproximada en días entre dos fechas.
+// Se utiliza calendario exacto
 static int diferenciaEntreDias(Fecha f1, Fecha f2) {
     int dias1 = f1.anio * 365 + f1.mes * 30 + f1.dia;
     int dias2 = f2.anio * 365 + f2.mes * 30 + f2.dia;
     return dias2 - dias1;
 }
 
+//E: Nada
+//S: La obtención de la fecha
+//R: Nada
+//F: Obtiene la fecha actual del sistema
 static Fecha obtenerFechaActual(void) {
     time_t t = time(NULL);
     struct tm *tm_info = localtime(&t);
@@ -67,7 +92,10 @@ static Fecha obtenerFechaActual(void) {
     return hoy;
 }
 
-
+//E: Lista de usuarios e id del usuario a buscar
+//S: El usuario encontrado o nada si no lo encontró
+//R: Valores válidos
+//F: Busca un usuario por su identificador dentro de la lista indicada
 Usuario *buscarUsuarioPorID(ListaUsuarios *lista, int id) {
     if (lista == NULL) return NULL;
     for (int i = 0; i < lista->cantidad; i++) {
@@ -78,6 +106,10 @@ Usuario *buscarUsuarioPorID(ListaUsuarios *lista, int id) {
     return NULL;
 }
 
+//E: Lista de usuarios y nombre el usuario a buscar
+//S: El id del usuario encontrado
+//R: Valores válidos
+//F:cBusca un usuario por nombre
 static Usuario *buscarUsuarioPorNombre(ListaUsuarios *lista, const char *nombre) {
     if (lista == NULL || nombre == NULL) return NULL;
     for (int i = 0; i < lista->cantidad; i++) {
@@ -88,6 +120,10 @@ static Usuario *buscarUsuarioPorNombre(ListaUsuarios *lista, const char *nombre)
     return NULL;
 }
 
+//E: El sistema y el id a buscar
+//S: El ejemplar si lo encontro
+//R: Valores válidos
+//F: Busca un ejemplar por identificador dentro del sistema
 static Ejemplar *buscarEjemplarPorID(SistemaPrestamos *sistema, int id) {
     if (sistema == NULL || sistema->ejemplares == NULL) return NULL;
     for (int i = 0; i < sistema->cantidadEjemplares; i++) {
@@ -98,6 +134,10 @@ static Ejemplar *buscarEjemplarPorID(SistemaPrestamos *sistema, int id) {
     return NULL;
 }
 
+//E: Arreglo de producciones diponibles, cantidad y nombre que se busca
+//S: Puntero a la producción encontrada
+//R: Valores válidos
+//F: Busca una producción por nombre
 static ProduccionDisponible *buscarProduccionPorNombre(
     ProduccionDisponible *producciones,
     int cantidad,
@@ -105,6 +145,7 @@ static ProduccionDisponible *buscarProduccionPorNombre(
 ) {
     if (producciones == NULL || nombreBuscado == NULL) return NULL;
 
+    // Limpieza y orden correcto del nombre se anda buscando para poder encontarlo sin problema
     char nombreLimpio[200];
     strncpy(nombreLimpio, nombreBuscado, sizeof(nombreLimpio) - 1);
     nombreLimpio[sizeof(nombreLimpio) - 1] = '\0';
@@ -122,7 +163,7 @@ static ProduccionDisponible *buscarProduccionPorNombre(
     return NULL;
 }
 
-
+// Inicializa los punteros, contadores y capacidades del sistema
 void inicializarSistemaPrestamos(SistemaPrestamos *sistema) {
     if (sistema == NULL) return;
     sistema->prestamos = NULL;
@@ -135,6 +176,10 @@ void inicializarSistemaPrestamos(SistemaPrestamos *sistema) {
     sistema->cantidadEjemplares = 0;
 }
 
+//E: Puntero del prestamo
+//S: Libera el espacio de los datos del prestamo
+//R: Valore válido
+//F: Libera un préstamo junto con sus nombres e identificadores de ejemplares
 void liberarPrestamo(Prestamo *p) {
     if (p == NULL) return;
     for (int i = 0; i < p->cantidadEjemplares; i++) {
@@ -145,6 +190,10 @@ void liberarPrestamo(Prestamo *p) {
     free(p);
 }
 
+//E: Puntero del sistema
+//S: Libera el espacio del sistema con sus datos
+//R: Puntero válido
+//F: Libera la colección completa de préstamos del sistema
 void liberarSistemaPrestamos(SistemaPrestamos *sistema) {
     if (sistema == NULL) return;
     for (int i = 0; i < sistema->cantidadPrestamos; i++) {
@@ -153,7 +202,10 @@ void liberarSistemaPrestamos(SistemaPrestamos *sistema) {
     free(sistema->prestamos);
 }
 
-
+//E: Nada
+//S: Crea el archivo por si no existe
+//R: Que no exista el archivo
+//F: Crea el archivo persistente de préstamos si no existe
 int crearArchivoPrestamos(void) {
     FILE *archivo = fopen(ARCHIVO_PRESTAMOS, "ab");
     if (archivo == NULL) return 0;
@@ -161,6 +213,10 @@ int crearArchivoPrestamos(void) {
     return 1;
 }
 
+//E: El sistema
+//S: Nos indica si se guardaron los datos en el json 1 o no 0
+//R: Valores válidos
+//F: Convierte los préstamos del sistema a JSON y los guarda
 int guardarPrestamosJSON(SistemaPrestamos *sistema) {
     if (sistema == NULL) return 0;
 
@@ -223,6 +279,11 @@ int guardarPrestamosJSON(SistemaPrestamos *sistema) {
     return 1;
 }
 
+//E: Puntero del sistema
+//S: 
+//R: 
+//F:
+/** Carga desde JSON los préstamos almacenados y reconstruye el sistema. */
 static int cargarPrestamosJSON(SistemaPrestamos *sistema) {
     FILE *archivo = fopen(ARCHIVO_PRESTAMOS, "r");
     if (archivo == NULL) return 1;
@@ -259,20 +320,22 @@ static int cargarPrestamosJSON(SistemaPrestamos *sistema) {
         p->entregaTardia = cJSON_GetObjectItemCaseSensitive(obj, "entregaTardia")->valueint;
         p->multa = cJSON_GetObjectItemCaseSensitive(obj, "multa")->valuedouble;
 
+        //Prueba
+
         cJSON *fInicio = cJSON_GetObjectItemCaseSensitive(obj, "fechaInicio");
-        p->fechaInicio.dia = cJSON_GetArrayItem(fInicio, 0)->valueint;
-        p->fechaInicio.mes = cJSON_GetArrayItem(fInicio, 1)->valueint;
-        p->fechaInicio.anio = cJSON_GetArrayItem(fInicio, 2)->valueint;
+        p->fechaInicio.dia = cJSON_GetArrayItem(fInicio, "dia")->valueint;
+        p->fechaInicio.mes = cJSON_GetArrayItem(fInicio, "mes")->valueint;
+        p->fechaInicio.anio = cJSON_GetArrayItem(fInicio, "anio")->valueint;
 
         cJSON *fFin = cJSON_GetObjectItemCaseSensitive(obj, "fechaFin");
-        p->fechaFin.dia = cJSON_GetArrayItem(fFin, 0)->valueint;
-        p->fechaFin.mes = cJSON_GetArrayItem(fFin, 1)->valueint;
-        p->fechaFin.anio = cJSON_GetArrayItem(fFin, 2)->valueint;
+        p->fechaFin.dia = cJSON_GetArrayItem(fFin, "dia")->valueint;
+        p->fechaFin.mes = cJSON_GetArrayItem(fFin, "mes")->valueint;
+        p->fechaFin.anio = cJSON_GetArrayItem(fFin, "anio")->valueint;
 
         cJSON *fDev = cJSON_GetObjectItemCaseSensitive(obj, "devolucion");
-        p->devolucion.dia = cJSON_GetArrayItem(fDev, 0)->valueint;
-        p->devolucion.mes = cJSON_GetArrayItem(fDev, 1)->valueint;
-        p->devolucion.anio = cJSON_GetArrayItem(fDev, 2)->valueint;
+        p->devolucion.dia = cJSON_GetArrayItem(fDev, "dia")->valueint;
+        p->devolucion.mes = cJSON_GetArrayItem(fDev, "mes")->valueint;
+        p->devolucion.anio = cJSON_GetArrayItem(fDev, "anio")->valueint;
 
         cJSON *arrEj = cJSON_GetObjectItemCaseSensitive(obj, "ejemplares");
         p->cantidadEjemplares = cJSON_GetArraySize(arrEj);
@@ -298,7 +361,10 @@ static int cargarPrestamosJSON(SistemaPrestamos *sistema) {
     return 1;
 }
 
-
+//E: Nada 
+//S: Todos los prestamos registrados 
+//R: Que exista el archivo
+//F: Lee y muestra en consola el historial completo de préstamos guardados
 void mostrarTodosLosPrestamos(void) {
     FILE *archivo = fopen(ARCHIVO_PRESTAMOS, "r");
     if (archivo == NULL) {
@@ -389,7 +455,7 @@ void mostrarTodosLosPrestamos(void) {
     cJSON_Delete(arreglo);
 }
 
-
+/** Valida y registra un préstamo asociando producciones disponibles. */
 int realizarPrestamoConProducciones(
     SistemaPrestamos *sistema,
     const char *nombreUsuario,
@@ -496,7 +562,7 @@ int realizarPrestamoConProducciones(
     return nuevo->idPrestamo;
 }
 
-
+/** Marca un préstamo como finalizado y calcula una posible multa por atraso. */
 void devolverPrestamo(SistemaPrestamos *sistema, int idPrestamo, Fecha fechaDevolucion) {
     Prestamo *p = NULL;
     for (int i = 0; i < sistema->cantidadPrestamos; i++) {
@@ -542,8 +608,7 @@ void devolverPrestamo(SistemaPrestamos *sistema, int idPrestamo, Fecha fechaDevo
     printf("=======================================\n");
 }
 
-
-
+/** Consulta los préstamos iniciados dentro del rango indicado. */
 void consultarHistorialPrestamos(SistemaPrestamos *sistema, Fecha desde, Fecha hasta) {
     printf("\n===== HISTORIAL DE PRESTAMOS (%02d/%02d/%d - %02d/%02d/%d) =====\n",
            desde.dia, desde.mes, desde.anio, hasta.dia, hasta.mes, hasta.anio);
@@ -569,6 +634,7 @@ void consultarHistorialPrestamos(SistemaPrestamos *sistema, Fecha desde, Fecha h
     printf("================================================================\n");
 }
 
+/** Identifica préstamos vencidos y los que vencen pronto. */
 void consultarVencimientos(SistemaPrestamos *sistema, Fecha fechaActual) {
     printf("\n===== CONSULTA DE VENCIMIENTOS (Fecha actual: %02d/%02d/%d) =====\n",
            fechaActual.dia, fechaActual.mes, fechaActual.anio);
@@ -595,6 +661,7 @@ void consultarVencimientos(SistemaPrestamos *sistema, Fecha fechaActual) {
     printf("======================================================================\n");
 }
 
+/** Muestra el resumen de préstamos asociados a un usuario. */
 void consultarPrestamosPorUsuario(SistemaPrestamos *sistema, int idUsuario) {
     Usuario *u = buscarUsuarioPorID(sistema->usuarios, idUsuario);
     if (u == NULL) {
@@ -619,6 +686,7 @@ void consultarPrestamosPorUsuario(SistemaPrestamos *sistema, int idUsuario) {
     printf("========================================\n");
 }
 
+/** Calcula y muestra totales de préstamos, atrasos y multas del período. */
 void generarReporteEstadisticas(SistemaPrestamos *sistema, Fecha desde, Fecha hasta) {
     int totalPrestamosRango = 0, totalTardios = 0;
     double multaTotal = 0.0;
@@ -642,8 +710,7 @@ void generarReporteEstadisticas(SistemaPrestamos *sistema, Fecha desde, Fecha ha
     printf("==============================================================\n");
 }
 
-
-
+/** Coordina el menú para registrar y consultar préstamos. */
 void menuPrestamos(void) {
     SistemaPrestamos sistema;
     inicializarSistemaPrestamos(&sistema);
@@ -836,7 +903,7 @@ void menuPrestamos(void) {
                 break;
             }
             case 5:
-                mainPrincipal();
+                continuar = 0;
                 printf("Volviendo al menu principal...\n");
                 break;
             default:
@@ -852,7 +919,7 @@ void menuPrestamos(void) {
     liberarSistemaPrestamos(&sistema);
 }
 
-
+/** Coordina el menú para registrar devoluciones de préstamos. */
 void menuDevoluciones(void) {
     SistemaPrestamos sistema;
     inicializarSistemaPrestamos(&sistema);
@@ -895,7 +962,7 @@ void menuDevoluciones(void) {
                 break;
             }
             case 2:
-                mainPrincipal();
+                continuar = 0;
                 printf("Volviendo al menu principal...\n");
                 break;
             default:
