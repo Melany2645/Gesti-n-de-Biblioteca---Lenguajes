@@ -6,6 +6,7 @@
 #include "Usuario.h"
 #include "prestamosDevoluciones.h"
 #include "BusquedaSimpleAvanzada.h"
+#include "Estadisticas.h"
 
 #include "menu.h"
 
@@ -22,11 +23,11 @@ void operativas(int opcion) {
     switch (opcion) {
         case 1:
             printf("Gestion del catalogo seleccionada.\n");
-            menuCatalogo(); // Llamar a la función correspondiente para la gestión del catálogo
+            menuCatalogo(); 
             break;
         case 2:
             printf("Gestian de usuario seleccionada.\n");
-            menuUsuario(); // Llamar a la función correspondiente para la gestión de usuario
+            menuUsuario(); 
             break;
         case 3:
             printf("Historial de prestamos seleccionado.\n");
@@ -34,11 +35,11 @@ void operativas(int opcion) {
             break;
         case 4:
             printf("Estadisticas seleccionadas.\n");
-            //menuEstadisticas(); // Llamar a la función correspondiente para las estadísticas
+            menuEstadisticas();
             break;
         case 5:
             printf("Volviendo al menu principal.\n");
-            mainPrincipal(); // Llamar a la función main para volver al menú principal
+            mainPrincipal(); 
             break;
         default:
             printf("Opcion no valida. Intente nuevamente.\n");
@@ -47,7 +48,6 @@ void operativas(int opcion) {
 }
 
 void generales(int opcion) {
-
     printf("-----Opciones Generales-----\n");
     printf("1. Busqueda simple\n");
     printf("2. Busqueda avanzada\n");
