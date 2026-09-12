@@ -155,7 +155,7 @@ void estadisticasProduccionesMasPrestadas(void) {
 
 
 void estadisticasUsuarioMasPrestamos(void) {
-    printf("\n========== USUARIO CON MAS PRESTAMOS ==========\n");
+    printf("\n========== TOP 3 USUARIOS CON MÁS PRESTAMOS ==========\n");
     
     // Abrir archivo de préstamos
     FILE *archivoPrestamos = fopen("prestamos.json", "r");
@@ -258,16 +258,20 @@ void estadisticasUsuarioMasPrestamos(void) {
         }
     }
     
-    // Ordenar y mostrar el primero
+    // Ordenar y mostrar Top 3
     ordenarUsuarios(conteos, uniqueCount);
-    
+
     printf("\n%-5s | %-30s | %s\n", "Pos", "Usuario", "Prestamos");
     printf("------|--------------------------------|----------\n");
-    printf("%-5d | %-30s | %d\n", 1, 
-           conteos[0].nombreUsuario ? conteos[0].nombreUsuario : "Desconocido",
-           conteos[0].cantidadPrestamos);
-    
-    printf("\n===============================================\n");
+
+    int max = (uniqueCount < 3) ? uniqueCount : 3;
+
+    for (int i = 0; i < max; i++) {
+        printf("%-5d | %-30s | %d\n",
+            i + 1,
+            conteos[i].nombreUsuario ? conteos[i].nombreUsuario : "Desconocido",
+            conteos[i].cantidadPrestamos);
+    }
     
     // Liberar memoria
     for (int i = 0; i < uniqueCount; i++) {
