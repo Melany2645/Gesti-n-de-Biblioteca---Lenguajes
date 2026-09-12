@@ -3,7 +3,9 @@
 #include <string.h>
 #include "cJSON.h"
 
+
 #include "Biblioteca.h"
+#include "menu.h"
 
 #define ARCHIVO_CATALOGO "catalogo.json"
 #define ARCHIVO_EJEMPLARES "ejemplares.json"
@@ -42,6 +44,7 @@ void menuCatalogo(void)
 
                 case 3:
                     printf("Volver\n");
+                    mainPrincipal();
                     break;
 
                 default:

@@ -836,7 +836,7 @@ void menuPrestamos(void) {
                 break;
             }
             case 5:
-                continuar = 0;
+                mainPrincipal();
                 printf("Volviendo al menu principal...\n");
                 break;
             default:
@@ -895,7 +895,7 @@ void menuDevoluciones(void) {
                 break;
             }
             case 2:
-                continuar = 0;
+                mainPrincipal();
                 printf("Volviendo al menu principal...\n");
                 break;
             default:

@@ -1,5 +1,6 @@
 #include "Estadisticas.h"
 #include "Usuario.h"
+#include "menu.h"
 
 // Función auxiliar para limpiar buffer
 static void limpiarBuffer(void) {
@@ -557,7 +558,7 @@ void menuEstadisticas(void) {
                 break;
             case 5:
                 printf("Volviendo al menu principal...\n");
-                continuar = 0;
+                mainPrincipal();
                 break;
             default:
                 printf("Opcion no valida. Intente nuevamente.\n");

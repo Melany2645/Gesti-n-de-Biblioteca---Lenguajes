@@ -1,4 +1,5 @@
 #include "Usuario.h"
+#include "menu.h"
 
 void LimpiarBuffer(void) {
     int c;
@@ -375,7 +376,7 @@ void menuUsuario(void) {
                 }
                 case 6:
                     printf("Volver al menu principal\n");
-                    continuar = 0;
+                    mainPrincipal();
                     break;
                 default:
                     printf("Opcion no valida\n");

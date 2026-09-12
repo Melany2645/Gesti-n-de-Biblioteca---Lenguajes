@@ -6,6 +6,7 @@
 #include <string.h>
 #include "Usuario.h"
 #include "Biblioteca.h"
+#include "menu.h"
 
 // Valores del estado
 typedef enum {
