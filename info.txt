@@ -1,0 +1,19 @@
+a. Nombre del curso
+Lenguajes de Programación
+b. Número de semestre y año lectivo
+Semestre 2 2026
+c. Nombre de los Estudiantes
+Diego Castillo Fallas
+Josimar Spencer Suarez
+Melany Jirón Díaz 
+d. Número de carnet de los estudiantes respectivamente
+2025068869
+2025111375
+2025087103
+e. Número de proyecto programado
+1
+f. Fecha de entrega
+12 9 2026
+g. Estatus de la entrega (debe ser CONGRUENTE con la solución entregada):
+[Deplorable|Regular|Buena|MuyBuena|Excelente|Superior]
+Muy buena
