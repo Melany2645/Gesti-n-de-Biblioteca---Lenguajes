@@ -8,7 +8,10 @@ static void limpiarBuffer(void) {
     while ((c = getchar()) != '\n' && c != EOF);
 }
 
-// Función para ordenar ProduccionConteo de mayor a menor
+//E: Arreglo de producciones y n
+//S: Arraglo ordenado
+//R: Valores válidos
+//F: Función para ordenar ProduccionConteo de mayor a menor
 static void ordenarProducciones(ProduccionConteo *arr, int n) {
     for (int i = 0; i < n - 1; i++) {
         for (int j = 0; j < n - i - 1; j++) {
@@ -21,7 +24,10 @@ static void ordenarProducciones(ProduccionConteo *arr, int n) {
     }
 }
 
-// Función para ordenar UsuarioConteo de mayor a menor
+//E: Arreglo de usuarios y un n
+//S: Arreglo ordenado
+//R: Valores válidos
+//F: Función para ordenar UsuarioConteo de mayor a menor
 static void ordenarUsuarios(UsuarioConteo *arr, int n) {
     for (int i = 0; i < n - 1; i++) {
         for (int j = 0; j < n - i - 1; j++) {
@@ -34,7 +40,10 @@ static void ordenarUsuarios(UsuarioConteo *arr, int n) {
     }
 }
 
-// Función para ordenar MesAnioConteo de mayor a menor
+//E: Un arreglo de fechas y un n
+//S: El arreglo ordenado
+//R: Valores válidos
+//F: Función para ordenar MesAnioConteo de mayor a menor
 static void ordenarMesesAnio(MesAnioConteo *arr, int n) {
     for (int i = 0; i < n - 1; i++) {
         for (int j = 0; j < n - i - 1; j++) {
@@ -47,7 +56,10 @@ static void ordenarMesesAnio(MesAnioConteo *arr, int n) {
     }
 }
 
-// Función para ordenar GeneroConteo de mayor a menor
+//E: Un arreglo de generos y un n 
+//S: El arreglo ordenado
+//R: Valores válidos
+//F: Función para ordenar GeneroConteo de mayor a menor
 static void ordenarGeneros(GeneroConteo *arr, int n) {
     for (int i = 0; i < n - 1; i++) {
         for (int j = 0; j < n - i - 1; j++) {
@@ -60,6 +72,10 @@ static void ordenarGeneros(GeneroConteo *arr, int n) {
     }
 }
 
+//E: Nada
+//S: Nos muestra el top según lo que hay registrado en el registro
+//R: Que el archivo exista
+//F: Función que nso muestra el top de producciones más prestados
 void estadisticasProduccionesMasPrestadas(void) {
     printf("\n========== TOP 3 PRODUCCIONES MAS PRESTADAS ==========\n");
     
@@ -154,7 +170,10 @@ void estadisticasProduccionesMasPrestadas(void) {
     free(conteos);
 }
 
-
+//E: Nada
+//S: El top de usuarios
+//R: Que el archivo exista
+//F: Nos muestra el top de usuarios con más prestamos registrados
 void estadisticasUsuarioMasPrestamos(void) {
     printf("\n========== TOP 3 USUARIOS CON MÁS PRÉSTAMOS ==========\n");
     
@@ -283,7 +302,10 @@ void estadisticasUsuarioMasPrestamos(void) {
     free(conteos);
 }
 
-
+//E: Nada
+//S: EL top de meses/año
+//R: Que exista el archivo
+//F: Nos muestra el top de meses o años con más dinero registrado
 void estadisticasMesesAnioMasDinero(void) {
     printf("\n========== TOP 5 MESES/ANIO CON MAS DINERO ==========\n");
     
@@ -370,6 +392,10 @@ void estadisticasMesesAnioMasDinero(void) {
     free(conteos);
 }
 
+//E: Nada
+//S: La estadistica de los generos
+//R: Que el archivo exista
+//F: Nos muestra los datos por género, género más prestado
 void estadisticasGeneros(void) {
     printf("\n========== ESTADISTICAS POR GENERO ==========\n");
     
@@ -529,6 +555,7 @@ void estadisticasGeneros(void) {
 }
 
 
+// Menu
 void menuEstadisticas(void) {
     int opcion;
     int continuar = 1;

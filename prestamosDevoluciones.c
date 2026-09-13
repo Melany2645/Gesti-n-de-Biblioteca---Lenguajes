@@ -301,7 +301,7 @@ int guardarPrestamosJSON(SistemaPrestamos *sistema) {
     return 1;
 }
 
-/** Carga desde JSON los préstamos almacenados y reconstruye el sistema. */
+// Carga desde JSON los préstamos almacenados y reconstruye el sistema
 static int cargarPrestamosJSON(SistemaPrestamos *sistema) {
     FILE *archivo = fopen(ARCHIVO_PRESTAMOS, "r");
     if (archivo == NULL) return 1;
@@ -496,7 +496,10 @@ void mostrarTodosLosPrestamos(void) {
     cJSON_Delete(arreglo);
 }
 
-/** Valida y registra un préstamo asociando producciones disponibles. */
+//E: Sistema e información del ejemplar a prestar
+//S: 1 y todo feu con éxito o 0 si hubo un error
+//R: Valores válidos
+//F: Valida y registra un préstamo asociando producciones disponibles
 int realizarPrestamoConProducciones(
     SistemaPrestamos *sistema,
     const char *nombreUsuario,
@@ -507,6 +510,7 @@ int realizarPrestamoConProducciones(
     ProduccionDisponible *producciones,
     int cantidadProducciones
 ) {
+    // Validaciones importantes 
     if (sistema == NULL || nombreUsuario == NULL || nombresProducciones == NULL || cantidad <= 0) {
         printf("Error: Datos invalidos para realizar el prestamo.\n");
         return 0;
@@ -544,6 +548,7 @@ int realizarPrestamoConProducciones(
     int duracionEstimada = diferenciaEntreDias(fechaInicio, fechaFin);
     if (duracionEstimada <= 0) duracionEstimada = 1;
     
+    // Calculos para la info
     double tarifaDiaria = obtenerTarifaDiariaPrestamo(duracionEstimada);
     nuevo->costoPrestamo = duracionEstimada * tarifaDiaria * cantidad; // Costo por ejemplar
     nuevo->multa = 0.0;
@@ -596,6 +601,7 @@ int realizarPrestamoConProducciones(
     sistema->totalPrestamos++;
     guardarPrestamosJSON(sistema);
 
+    // Comprobante con los datos, el prestamo se hizo con éxito
     printf("\n===== COMPROBANTE DE PRESTAMO =====\n");
     printf("ID Prestamo: %d\n", nuevo->idPrestamo);
     printf("Usuario: %s (ID: %d)\n", usuario->nombre, usuario->id);
@@ -614,7 +620,10 @@ int realizarPrestamoConProducciones(
     return nuevo->idPrestamo;
 }
 
-/** Marca un préstamo como finalizado y calcula la multa según tabla de tarifas. */
+//E: Puntero del sistema, id del prestamo y fecha de la devolución
+//S: Un comprobante que nos indica que la devolución se hizo correctamente 
+//R: Valores válidos
+//F: Marca un préstamo como finalizado y calcula la multa según tabla de tarifas
 void devolverPrestamo(SistemaPrestamos *sistema, int idPrestamo, Fecha fechaDevolucion) {
     Prestamo *p = NULL;
     for (int i = 0; i < sistema->cantidadPrestamos; i++) {
@@ -641,7 +650,7 @@ void devolverPrestamo(SistemaPrestamos *sistema, int idPrestamo, Fecha fechaDevo
     int duracionTotal = diferenciaEntreDias(p->fechaInicio, fechaDevolucion);
     if (duracionTotal <= 0) duracionTotal = 1;
     
-    // Determinar tarifas según duración del préstamo (TABLA DEL PROYECTO)
+    // Determinar tarifas según duración del préstamo
     double tarifaDiaria = obtenerTarifaDiariaPrestamo(duracionTotal);
     double tarifaTardia = obtenerTarifaDiariaTardia(duracionTotal);
     
@@ -667,7 +676,7 @@ void devolverPrestamo(SistemaPrestamos *sistema, int idPrestamo, Fecha fechaDevo
 
     // Comprobante de devolución
     Usuario *u = buscarUsuarioPorID(sistema->usuarios, p->idUsuario);
-    printf("\n========== COMPROBANTE DE DEVOLUCION ==========\n");
+    printf("\n--------- COMPROBANTE DE DEVOLUCION -----------\n");
     printf("ID Prestamo       : %d\n", p->idPrestamo);
     printf("Usuario           : %s\n", u ? u->nombre : "Desconocido");
     printf("Fecha Inicio      : %02d/%02d/%d\n", p->fechaInicio.dia, p->fechaInicio.mes, p->fechaInicio.anio);
@@ -689,14 +698,18 @@ void devolverPrestamo(SistemaPrestamos *sistema, int idPrestamo, Fecha fechaDevo
     
     printf("-----------------------------------------------\n");
     printf("TOTAL A PAGAR     : $%.2f\n", totalPagar);
-    printf("==============================================\n");
+    printf("-----------------------------------------------n");
 }
 
-/** Consulta los préstamos iniciados dentro del rango indicado. */
+//E: Puntero de sistema, y un rango de fecha
+//S: Nos da los prestamos en ese rango de fecha
+//R: Valores válidos
+//F: Consulta los préstamos iniciados dentro del rango indicado
 void consultarHistorialPrestamos(SistemaPrestamos *sistema, Fecha desde, Fecha hasta) {
     printf("\n===== HISTORIAL DE PRESTAMOS (%02d/%02d/%d - %02d/%02d/%d) =====\n",
            desde.dia, desde.mes, desde.anio, hasta.dia, hasta.mes, hasta.anio);
 
+           // Hacemos recorrido para ver si se encuentran prestamos en esas fechas
     int encontrados = 0;
     for (int i = 0; i < sistema->cantidadPrestamos; i++) {
         Prestamo *p = sistema->prestamos[i];
@@ -722,11 +735,15 @@ void consultarHistorialPrestamos(SistemaPrestamos *sistema, Fecha desde, Fecha h
     printf("================================================================\n");
 }
 
-/** Identifica préstamos vencidos y los que vencen pronto. */
+//E: Puntero de sistema y fecha
+//S: Nos da los prestamos vencidos hasta el día de hoy y los que están cerca a vencerse 
+//R: Valores válidos
+//F: Identifica préstamos vencidos y los que vencen pronto
 void consultarVencimientos(SistemaPrestamos *sistema, Fecha fechaActual) {
     printf("\n===== CONSULTA DE VENCIMIENTOS (Fecha actual: %02d/%02d/%d) =====\n",
            fechaActual.dia, fechaActual.mes, fechaActual.anio);
 
+    // DE igual forma, hacemos recorrido hasta encontrarlos       
     int vencidos = 0, proximos = 0;
     for (int i = 0; i < sistema->cantidadPrestamos; i++) {
         Prestamo *p = sistema->prestamos[i];
@@ -737,11 +754,11 @@ void consultarVencimientos(SistemaPrestamos *sistema, Fecha fechaActual) {
 
         if (diasRestantes < 0) {
             vencidos++;
-            printf("\n[VENCIDO] Prestamo #%d - Usuario: %s\n", p->idPrestamo, u ? u->nombre : "N/A");
+            printf("\n[Vencido] Prestamo #%d - Usuario: %s\n", p->idPrestamo, u ? u->nombre : "N/A");
             printf("  Vencio el: %02d/%02d/%d (Atraso: %d dias)\n", p->fechaFin.dia, p->fechaFin.mes, p->fechaFin.anio, -diasRestantes);
         } else if (diasRestantes <= DIAS_PROXIMO_VENCIMIENTO) {
             proximos++;
-            printf("\n[PROXIMO A VENCER] Prestamo #%d - Usuario: %s\n", p->idPrestamo, u ? u->nombre : "N/A");
+            printf("\n[Proximo a vencer] Prestamo #%d - Usuario: %s\n", p->idPrestamo, u ? u->nombre : "N/A");
             printf("  Vence el: %02d/%02d/%d (Restan: %d dias)\n", p->fechaFin.dia, p->fechaFin.mes, p->fechaFin.anio, diasRestantes);
         }
     }
@@ -749,7 +766,10 @@ void consultarVencimientos(SistemaPrestamos *sistema, Fecha fechaActual) {
     printf("======================================================================\n");
 }
 
-/** Muestra el resumen de préstamos asociados a un usuario. */
+//E: Puntero del sistema y id del usuario
+//S: Nos da los prestamos de x usuario
+//R: Valores válidos
+//F: Muestra el resumen de préstamos asociados a un usuario
 void consultarPrestamosPorUsuario(SistemaPrestamos *sistema, int idUsuario) {
     Usuario *u = buscarUsuarioPorID(sistema->usuarios, idUsuario);
     if (u == NULL) {
@@ -757,6 +777,7 @@ void consultarPrestamosPorUsuario(SistemaPrestamos *sistema, int idUsuario) {
         return;
     }
 
+    // Igual recorremos
     printf("\n===== PRESTAMOS DE: %s (ID: %d) =====\n", u->nombre, u->id);
     int count = 0;
     double totalGastado = 0.0;
@@ -780,7 +801,10 @@ void consultarPrestamosPorUsuario(SistemaPrestamos *sistema, int idUsuario) {
     printf("========================================\n");
 }
 
-/** Calcula y muestra totales de préstamos, atrasos y multas del período. */
+//E: Puntero del sistema y un rango de fecha
+//S: Nos da un resumen de las diferentes acciones de ese rango de tiempo, como prestamos,atrasos y multas
+//R: Valores válidos
+//F: Calcula y muestra totales de préstamos, atrasos y multas del período
 void generarReporteEstadisticas(SistemaPrestamos *sistema, Fecha desde, Fecha hasta) {
     int totalPrestamosRango = 0, totalTardios = 0;
     double multaTotal = 0.0;
@@ -807,7 +831,10 @@ void generarReporteEstadisticas(SistemaPrestamos *sistema, Fecha desde, Fecha ha
     printf("==============================================================\n");
 }
 
-/** Coordina el menú para registrar y consultar préstamos. */
+//E: Nada
+//S: Muestra el menu para gestinar, consultar y registrar prestamos. Inicializa variables
+//R: Ndada
+//F: Coordina el menú para registrar y consultar préstamos
 void menuPrestamos(void) {
     SistemaPrestamos sistema;
     inicializarSistemaPrestamos(&sistema);
@@ -824,6 +851,7 @@ void menuPrestamos(void) {
     ProduccionDisponible *producciones = NULL;
     int cantidadProducciones = 0;
 
+    // Cargar copia del contenido del catalogo
     FILE *archivoCat = fopen("catalogo.json", "r");
     if (archivoCat != NULL) {
         fseek(archivoCat, 0, SEEK_END);
@@ -1014,7 +1042,10 @@ void menuPrestamos(void) {
     liberarSistemaPrestamos(&sistema);
 }
 
-/** Coordina el menú para registrar devoluciones de préstamos. */
+//E: Nada
+//S: EL menu para gestionar las devoluciones
+//R: Valores válidos
+//F: Coordina el menú para registrar devoluciones de préstamos
 void menuDevoluciones(void) {
     SistemaPrestamos sistema;
     inicializarSistemaPrestamos(&sistema);

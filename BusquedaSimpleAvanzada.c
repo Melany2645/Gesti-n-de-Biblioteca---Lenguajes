@@ -5,27 +5,39 @@
 #include "cJSON.h"
 #include "BusquedaSimpleAvanzada.h"
 
-// Estructura para ejemplar con disponibilidad
+// E: Identificador, nombre de la produccion y estado de disponibilidad
+// S: Un registro con la informacion de un ejemplar
+// R: El identificador debe ser valido y el nombre debe estar almacenado correctamente
+// F: Representa un ejemplar y permite indicar si puede ser prestado
 typedef struct {
     int id;
     char *nombreProduccion;
     int disponible;
 } EjemplarInfo;
 
-// Función auxiliar para limpiar buffer
+//E: Ninguna
+//S: Se eliminan los caracteres restantes de la entrada 
+//R: Nada
+//F: Limpia el buffer de entrada despues de una lectura con scanf
 static void limpiarBuffer(void) {
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
 }
 
-// Función auxiliar para convertir a minúsculas
+//E: Una cadena 
+//S: La misma cadena convertida a minusculas
+//R: La cadena debe ser valida y tener espacio para sus caracteres
+//F: Convierte todos los caracteres de una cadena a minusculas
 static void aMinusculas(char *str) {
     for (int i = 0; str[i]; i++) {
         str[i] = tolower((unsigned char)str[i]);
     }
 }
 
-// Función auxiliar para buscar si una cadena contiene otra (case-insensitive)
+//E: Texto completo y texto que se desea buscar
+//S: 1 si el texto contiene la busqueda, o 0 si no la contiene
+//R: Las cadenas deben ser validas y la busqueda no debe estar vacia
+//F: Verifica si una cadena contiene otra ignorando mayusculas y minusculas
 static int contiene(const char *texto, const char *busqueda) {
     if (texto == NULL || busqueda == NULL || strlen(busqueda) == 0) {
         return 0;
@@ -45,7 +57,10 @@ static int contiene(const char *texto, const char *busqueda) {
     return strstr(textoLower, busquedaLower) != NULL;
 }
 
-// Función auxiliar para búsqueda exacta (case-insensitive)
+//E: Texto completo y texto que se desea comparar
+//S: 1 si las cadenas son iguales, o 0 si son diferentes
+//R: Las cadenas deben ser validas
+//F: Compara dos cadenas exactamente ignorando mayusculas y minusculas
 static int esExacta(const char *texto, const char *busqueda) {
     if (texto == NULL || busqueda == NULL) {
         return 0;
@@ -65,7 +80,10 @@ static int esExacta(const char *texto, const char *busqueda) {
     return strcmp(textoLower, busquedaLower) == 0;
 }
 
-// Función para cargar ejemplares y verificar disponibilidad
+//E: Puntero donde se almacenara la cantidad total de ejemplares
+//S: Arreglo de ejemplares con su disponibilidad, o NULL si ocurre un error
+//R: Deben de existir los archivos
+//F: Carga los ejemplares y marca como no disponibles los que tienen prestamos activos
 static EjemplarInfo *cargarEjemplaresConDisponibilidad(int *totalEjemplares) {
     FILE *archivoEjemplares = fopen("ejemplares.json", "r");
     if (archivoEjemplares == NULL) {
@@ -110,7 +128,7 @@ static EjemplarInfo *cargarEjemplaresConDisponibilidad(int *totalEjemplares) {
         ejemplares[i].disponible = 1; // Por defecto disponible
     }
     
-    // Verificar qué ejemplares están prestados (no disponibles)
+    // Verificar qué ejemplares están prestados
     FILE *archivoPrestamos = fopen("prestamos.json", "r");
     if (archivoPrestamos != NULL) {
         fseek(archivoPrestamos, 0, SEEK_END);
@@ -160,7 +178,10 @@ static EjemplarInfo *cargarEjemplaresConDisponibilidad(int *totalEjemplares) {
     return ejemplares;
 }
 
-
+//E: Nada
+//S: Muestra las producciones que coinciden en nombre, autor o resumen
+//R: Deben de existir los archivos 
+//F: Realiza una busqueda simple sin distinguir mayusculas y minusculas
 void busquedaSimple(void) {
     char textoBusqueda[200];
 
@@ -222,7 +243,7 @@ void busquedaSimple(void) {
         
         int coincide = 0;
         
-        // Buscar en nombre, autor o resumen (operador OR)
+        // Buscar en nombre, autor o resumen
         if (contiene(nombre->valuestring, textoBusqueda) ||
             contiene(autor->valuestring, textoBusqueda) ||
             contiene(resumen->valuestring, textoBusqueda)) {
@@ -271,7 +292,10 @@ void busquedaSimple(void) {
     }
 }
 
-
+//E: Nada
+//S: Muestra las producciones que cumplen según filtros 
+//R: Los archivos deben de existir
+//F: Realiza una busqueda avanzada exacta o parcial segun los operadores que se eligieron
 void busquedaAvanzada(void) {
     char busquedaNombre[200] = "";
     char busquedaAutor[200] = "";

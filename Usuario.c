@@ -1,11 +1,17 @@
 #include "Usuario.h"
 #include "menu.h"
 
+// Manipulación del archivo de los usuarios
+
 void LimpiarBuffer(void) {
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
 }
 
+//E: Arreglos donde se almacenaran el nombre y la direccion del usuario
+//S: Los datos bien arreglados y en orden que fueron dados por el usuario
+//R: Valores válidos
+//F: Solicita al usuario su nombre y direccion
 void CapturarDatosUsuario(char *nombre, char *direccion) {
     printf("\n--- CAPTURAR DATOS DEL USUARIO ---\n");
     
@@ -18,6 +24,10 @@ void CapturarDatosUsuario(char *nombre, char *direccion) {
     LimpiarBuffer();
 }
 
+//E: Lista de usuarios
+//S: El identificador mas grande encontrado
+//R: La lista debe ser valida y contener usuarios correctamente almacenados
+//F: Obtiene el ID maximo de los usuarios registrados
 int ObtenerMaximoID(ListaUsuarios *lista) {
     if (lista == NULL) return 0;
     
@@ -31,6 +41,10 @@ int ObtenerMaximoID(ListaUsuarios *lista) {
     return maxID;
 }
 
+//E: Lista de usuarios y nombre del archivo JSON
+//S: La lista se llena con los usuarios validos del archivo
+//R: El archivo debe existir y contener un arreglo JSON con id, nombre y direccion
+//F: Carga los usuarios desde un archivo JSON
 void CargarUsuariosDesdeArchivo(ListaUsuarios *lista, const char *nombreArchivo) {
     FILE *archivo = fopen(nombreArchivo, "r");
     if (archivo == NULL) return;
@@ -98,6 +112,10 @@ void CargarUsuariosDesdeArchivo(ListaUsuarios *lista, const char *nombreArchivo)
     cJSON_Delete(arreglo);
 }
 
+//E: Lista de usuarios y nombre del archivo JSON
+//S: El archivo JSON queda actualizado con los usuarios de la lista
+//R: La lista y el nombre del archivo deben ser validos
+//F: Guarda todos los usuarios en formato JSON
 void GuardarUsuariosEnArchivo(ListaUsuarios *lista, const char *nombreArchivo) {
     cJSON *arreglo = cJSON_CreateArray();
     if (arreglo == NULL) {
@@ -142,6 +160,10 @@ void GuardarUsuariosEnArchivo(ListaUsuarios *lista, const char *nombreArchivo) {
     cJSON_Delete(arreglo);
 }
 
+//E: Lista de usuarios, archivo, nombre y direccion del nuevo usuario
+//S: La lista y el archivo quedan actualizados con un nuevo usuario
+//R: La lista, el nombre y la direccion deben ser validos
+//F: Agrega un usuario y le asigna un ID consecutivo
 void AgregarUsuario(ListaUsuarios *lista, const char *nombreArchivo, 
                     const char *nombre, const char *direccion) {
     
@@ -180,6 +202,10 @@ void AgregarUsuario(ListaUsuarios *lista, const char *nombreArchivo,
     printf("\nUsuario agregado con ID: %d\n", nuevoID);
 }
 
+//E: Lista de usuarios e ID del usuario que se desea consultar
+//S: Muestra los datos del usuario encontrado
+//R: La lista debe ser valida y el ID debe ser de un usuario registrado
+//F: Busca y visualiza un usuario por su ID
 void VisualizarUsuarioPorID(ListaUsuarios *lista, int id) {
     if (lista == NULL) return;
     
@@ -196,6 +222,10 @@ void VisualizarUsuarioPorID(ListaUsuarios *lista, int id) {
     printf("Usuario con ID %d no encontrado.\n", id);
 }
 
+//E: Lista de usuarios, archivo, ID y nuevos datos opcionales del usuario
+//S: La lista y el archivo quedan actualizados con los cambios 
+//R: El usuario debe existir y los nuevos datos deben ser validos
+//F: Modifica el nombre o la direccion de un usuario
 void ModificarUsuario(ListaUsuarios *lista, const char *nombreArchivo, int id) {
     if (lista == NULL) return;
     
@@ -317,7 +347,7 @@ void EliminarUsuario(ListaUsuarios *lista, const char *nombreArchivo, int id) {
         }
     }
     
-    // Si no tiene préstamos, proceder con la eliminación
+    // Si no tiene préstamos, se puede eliminar el usuario
     char confirmacion;
     printf("Eliminar usuario ID %d? (s/n): ", id);
     scanf(" %c", &confirmacion);
@@ -339,6 +369,10 @@ void EliminarUsuario(ListaUsuarios *lista, const char *nombreArchivo, int id) {
     }
 }
 
+//E: Lista de usuarios
+//S: Se libera la memoria de los usuarios y la lista queda vacia
+//R: La lista debe haber sido inicializada correctamente
+//F: Libera la memoria utilizada por la lista de usuarios
 void LiberarListaUsuarios(ListaUsuarios *lista) {
     if (lista == NULL) return;
     for (int i = 0; i < lista->cantidad; i++) {
@@ -350,6 +384,10 @@ void LiberarListaUsuarios(ListaUsuarios *lista) {
     lista->capacidad = 0;
 }
 
+//E: Ninguna
+//S: Permite administrar usuarios mediante un menu 
+//R: Requiere una entrada valida por teclado y el archivo de usuarios disponible
+//F: Ejecuta el menu principal de gestion de usuarios
 void menuUsuario(void) {
     int opcion;
     int continuar = 1;
